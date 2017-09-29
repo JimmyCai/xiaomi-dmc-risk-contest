@@ -30,12 +30,31 @@ object XGBFeature {
             .toMap
         val needFieldsBroadCast = spark.sparkContext.broadcast(needFields)
 
+        val combineFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-fields.txt"))
+            .getLines()
+            .map { line =>
+                val split = line.split("\t")
+                split.head -> split.last.toInt
+            }
+            .toMap
+        val combineFieldsBroadCast = spark.sparkContext.broadcast(combineFields)
+
+        val combineNeedFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-fields.txt"))
+            .getLines()
+            .flatMap { line =>
+                val split = line.split("\t")
+                val ss = split.head.split(",")
+                Seq(ss.head.toInt, ss.last.toInt)
+            }
+            .toSet
+        val combineNeedFieldsBroadCast = spark.sparkContext.broadcast(combineNeedFields)
+
         val outUser = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/out_user.txt"))
             .getLines()
             .map { line =>
                 line.split("\t").head
             }
-            .toSeq
+            .toSet
         val outUserBroadCast = spark.sparkContext.broadcast(outUser)
 
         val tDF = spark.read.parquet(args("input"))
@@ -47,19 +66,21 @@ object XGBFeature {
                 val featureBuilder = new FeatureBuilder
                 var startIndex = 1
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.avg)
+//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.avg)
+//
+//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.max)
+//
+//                startIndex = MissingValue.encode(featureBuilder, ual, startIndex)
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.max)
+                startIndex = encodeCombineFeatures(featureBuilder, ual, startIndex, combineNeedFieldsBroadCast.value, combineFieldsBroadCast.value)(MergedMethod.max)
 
-                startIndex = MissingValue.encode(featureBuilder, ual, startIndex)
-
-                (ual.user, startIndex - 1, ual.label + featureBuilder.getFeature())
+                FeatureEncoded(ual.user, startIndex - 1, ual.label + featureBuilder.getFeature())
             }
 
 
-        val ansDF = tDF.orderBy($"_1")
+        val ansDF = tDF.orderBy($"user")
             .map { r =>
-                r._1 + "\t" + r._2 + "\t" + r._3
+                r.user + "\t" + r.featureSize + "\t" + r.features
             }
 
         ansDF
@@ -94,5 +115,36 @@ object XGBFeature {
             }
 
         startIndex + xgbFields.size
+    }
+
+    def encodeCombineFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, xgbFields: Set[Int], combineFields: Map[String, Int])(implicit mergedMethod: Seq[Double] => Double) = {
+        val actionSeq = ual.actions
+            .values
+            .filter(_.nonEmpty)
+            .flatMap { curAction =>
+                curAction
+                    .filter { case(index, _) =>
+                        xgbFields.contains(index)
+                    }
+            }
+            .groupBy(_._1)
+            .map { case (k, vs) =>
+                val vss = vs.toSeq.map(_._2)
+                k -> mergedMethod(vss)
+            }
+
+        actionSeq
+            .keys
+            .toSeq
+            .sorted
+            .combinations(2)
+            .foreach { a =>
+                val key = a.head + "," + a.last
+                val value = actionSeq(a.head) * actionSeq(a.last)
+
+                featureBuilder.addFeature(startIndex, 0, combineFields(key), if(value > 0) Math.log(value) else 0.0)
+            }
+
+        startIndex + combineFields.size
     }
 }

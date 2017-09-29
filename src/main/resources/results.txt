@@ -1,0 +1,10 @@
+xgb模型
+1.avg, max, missing_num
+验证集：
+[739]   eval-auc:0.826016       train-auc:0.950718
+[820]   eval-auc:0.82624        train-auc:0.954262
+[999]   eval-auc:0.825712       train-auc:0.961071
+
+测试集：
+[819]   train-auc:0.95029
+线上：0.86558
