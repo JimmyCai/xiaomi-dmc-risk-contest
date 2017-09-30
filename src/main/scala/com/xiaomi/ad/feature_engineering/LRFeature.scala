@@ -2,6 +2,7 @@ package com.xiaomi.ad.feature_engineering
 
 import com.twitter.scalding.Args
 import com.xiaomi.ad.others.UALProcessed
+import com.xiaomi.ad.statistics.MinMaxStatistics
 import com.xiaomi.ad.tools.MergedMethod
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.{SaveMode, SparkSession}
@@ -30,6 +31,25 @@ object LRFeature {
             .toMap
         val needFieldsBroadCast = spark.sparkContext.broadcast(needFields)
 
+        val combineFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-need-fields.txt"))
+            .getLines()
+            .map { line =>
+                val split = line.split("\t")
+                split.head -> split.last.toInt
+            }
+            .toMap
+        val combineFieldsBroadCast = spark.sparkContext.broadcast(combineFields)
+
+        val combineNeedFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-need-fields.txt"))
+            .getLines()
+            .flatMap { line =>
+                val split = line.split("\t")
+                val ss = split.head.split(",")
+                Seq(ss.head.toInt, ss.last.toInt)
+            }
+            .toSet
+        val combineNeedFieldsBroadCast = spark.sparkContext.broadcast(combineNeedFields)
+
         val outUser = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/out_user.txt"))
             .getLines()
             .map { line =>
@@ -37,6 +57,9 @@ object LRFeature {
             }
             .toSeq
         val outUserBroadCast = spark.sparkContext.broadcast(outUser)
+
+        val minMaxStatistics = MinMaxStatistics.getMinMaxStatistics(spark, args("minMax"))
+        val minMaxStatisticsBroadCast = spark.sparkContext.broadcast(minMaxStatistics)
 
         val tDF = spark.read.parquet(args("input"))
             .as[UALProcessed]
@@ -49,7 +72,9 @@ object LRFeature {
 
                 startIndex = BasicProfile.encode(featureBuilder, ual, startIndex)
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.avg)
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
+
+                startIndex = encodeCombineFeatures(featureBuilder, ual, startIndex, combineNeedFieldsBroadCast.value, combineFieldsBroadCast.value)(MergedMethod.avg)
 
                 startIndex = MissingValue.encode(featureBuilder, ual, startIndex)
 
@@ -70,7 +95,7 @@ object LRFeature {
         spark.stop()
     }
 
-    def encodeFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, lrFields: Map[Int, Int])(implicit mergedMethod: Seq[Double] => Double) = {
+    def encodeFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, lrFields: Map[Int, Int], minMaxMap: Map[Int, (Double, Double)])(implicit mergedMethod: Seq[Double] => Double) = {
         val actionSeq = ual.actions
             .values
             .filter(_.nonEmpty)
@@ -90,9 +115,44 @@ object LRFeature {
 
         actionSeq
             .foreach { case(index, value) =>
-                featureBuilder.addFeature(startIndex, 0, lrFields(index), Discretization.softSign(value))
+                featureBuilder.addFeature(startIndex, 0, lrFields(index), Discretization.minMax(minMaxMap(index)._1, minMaxMap(index)._2, value))
             }
 
         startIndex + lrFields.size
+    }
+
+    def encodeCombineFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, lrFields: Set[Int], combineFields: Map[String, Int])(implicit mergedMethod: Seq[Double] => Double) = {
+        val actionSeq = ual.actions
+            .values
+            .filter(_.nonEmpty)
+            .flatMap { curAction =>
+                curAction
+                    .filter { case(index, _) =>
+                        lrFields.contains(index)
+                    }
+            }
+            .groupBy(_._1)
+            .map { case (k, vs) =>
+                val vss = vs.toSeq.map(_._2)
+                k -> mergedMethod(vss)
+            }
+
+        actionSeq
+            .keys
+            .toSeq
+            .sorted
+            .combinations(2)
+            .filter { a =>
+                val key = a.head + "," + a.last
+                combineFields.contains(key)
+            }
+            .foreach { a =>
+                val key = a.head + "," + a.last
+                val value = actionSeq(a.head) * actionSeq(a.last)
+
+                featureBuilder.addFeature(startIndex, 0, combineFields(key), value)
+            }
+
+        startIndex + combineFields.size
     }
 }

@@ -1,11 +1,28 @@
 package com.xiaomi.ad.over_sample
 
-import com.xiaomi.ad.tools.{NearestNeighbors, LoadSmoteData}
+import java.security.MessageDigest
+
+import com.twitter.scalding.Args
+import com.xiaomi.ad.tools.{LoadSmoteData, NearestNeighbors}
+import org.apache.spark.sql.SparkSession
 
 import scala.util.Random
-import org.apache.spark.SparkContext
+import org.apache.spark.{SparkConf, SparkContext}
 
 object SMOTE {
+
+    def main(args: Array[String]): Unit = {
+        val argv = Args(args)
+        execute(argv, new SparkConf())
+    }
+
+    def execute(args: Args, sparkConf: SparkConf) = {
+        val spark = SparkSession.builder().config(sparkConf).getOrCreate()
+
+        runSMOTE(spark.sparkContext, args("input"), args("output"), 1.0, 5, 10)
+
+        spark.stop()
+    }
 
     def runSMOTE(sc: SparkContext, 
         inPath: String, 
@@ -37,7 +54,7 @@ object SMOTE {
 
         val syntheticData = dataArray.mapPartitionsWithIndex(createSyntheticData(_,_,sampleDataNearestNeighbors)).persist()
         println("Synthetic Data Count "+syntheticData.count.toString)
-        val newData = syntheticData.union(sc.textFile(inPath))
+        val newData = syntheticData.union(sc.textFile(inPath)).repartition(numPartitions)
         println("New Line Count "+newData.count.toString)
         newData.saveAsTextFile(outPath)
     }
@@ -64,15 +81,22 @@ object SMOTE {
                     val featureStr = sampleFeatures
                         .toArray
                         .zipWithIndex
+                        .filter(_._1 != 0.0)
                         .map { case(f, i) =>
                             f"${i + 1}:$f%1.4f"
                         }
                         .mkString(" ")
                     val featureSize = sampleFeatures.length
 
-                    result.::=(s"sample$j\t$featureSize\t1.0 $featureStr")
+                    val user = md5OfString(s"sample$j")
+                    result.::=(s"$user\t$featureSize\t1.0 $featureStr")
                 }
             }
         result.iterator
-    }        
+    }
+
+    private def md5OfString(input: String) = {
+        val bytes = MessageDigest.getInstance("MD5").digest(input.getBytes)
+        new String(bytes)
+    }
 }

@@ -20,8 +20,8 @@ object LibSVMReader {
     def parseLibSVMRecord(line: String): (String, Double, Array[Int], Array[Double]) = {
         val splits = line.split("\t")
         val (insId, features) =
-            if(splits.length == 2) {
-                (splits.head, splits(1))
+            if(splits.length == 3) {
+                (splits.head, splits(2))
             }
             else {
                 (null, splits.head)
