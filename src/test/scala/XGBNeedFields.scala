@@ -101,16 +101,12 @@ object XGBNeedFields {
             .getLines()
             .map { line =>
                 val split = line.split("\t")
-                val need = split.head.toInt
+                val need = split.head.toInt - 429
                 need
             }
             .toSeq
             .take(100)
             .sorted
-
-        println(t.size)
-
-        println(t.combinations(2).size)
 
         t.combinations(2)
             .flatMap { case a =>
