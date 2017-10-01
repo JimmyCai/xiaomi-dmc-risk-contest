@@ -30,7 +30,6 @@ xbg+组合特征
 验证集：
 [811]   eval-auc:0.826304       train-auc:0.953901
 [999]   eval-auc:0.825712       train-auc:0.961071
-
 train:
 [999]	train-auc:0.966036
 线上：0.86273
