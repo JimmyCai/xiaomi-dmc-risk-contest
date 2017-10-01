@@ -30,7 +30,7 @@ object XGBFeature {
             .toMap
         val needFieldsBroadCast = spark.sparkContext.broadcast(needFields)
 
-        val combineFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-need-fields.txt"))
+        val combineFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-try-fields.txt"))
             .getLines()
             .map { line =>
                 val split = line.split("\t")
@@ -39,7 +39,7 @@ object XGBFeature {
             .toMap
         val combineFieldsBroadCast = spark.sparkContext.broadcast(combineFields)
 
-        val combineNeedFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-need-fields.txt"))
+        val combineNeedFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-try-fields.txt"))
             .getLines()
             .flatMap { line =>
                 val split = line.split("\t")
@@ -77,6 +77,7 @@ object XGBFeature {
         val outUserBroadCast = spark.sparkContext.broadcast(outUser)
 
         val tDF = spark.read.parquet(args("input"))
+            .repartition(100)
             .as[UALProcessed]
             .filter { ual =>
                 !outUserBroadCast.value.contains(ual.user)
@@ -85,15 +86,15 @@ object XGBFeature {
                 val featureBuilder = new FeatureBuilder
                 var startIndex = 1
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.avg)
+//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.avg)
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.max)
+//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.max)
 
-//                startIndex = encodeCombineFeatures(featureBuilder, ual, startIndex, combineNeedFieldsBroadCast.value, combineFieldsBroadCast.value)(MergedMethod.avg)
+                startIndex = encodeCombineFeatures(featureBuilder, ual, startIndex, combineNeedFieldsBroadCast.value, combineFieldsBroadCast.value)(MergedMethod.avg)
 
-                startIndex = encodeCombineLogFeatures(featureBuilder, ual, startIndex, combineLogNeedFieldsBroadCast.value, combineLogFieldsBroadCast.value)(MergedMethod.avg)
+//                startIndex = encodeCombineLogFeatures(featureBuilder, ual, startIndex, combineLogNeedFieldsBroadCast.value, combineLogFieldsBroadCast.value)(MergedMethod.avg)
 
-                startIndex = MissingValue.encode(featureBuilder, ual, startIndex)
+//                startIndex = MissingValue.encode(featureBuilder, ual, startIndex)
 
                 FeatureEncoded(ual.user, startIndex - 1, ual.label + featureBuilder.getFeature())
             }
@@ -160,14 +161,23 @@ object XGBFeature {
             .sorted
             .combinations(2)
             .filter { a =>
-                val key = a.head + "," + a.last
-                combineFields.contains(key)
+                val key1 = a.head + "," + a.last
+                val key2 = a.last + "," + a.head
+                combineFields.contains(key1) || combineFields.contains(key2)
             }
             .foreach { a =>
-                val key = a.head + "," + a.last
-                val value = actionSeq(a.head) * actionSeq(a.last)
+                val key1 = a.head + "," + a.last
+                val key2 = a.last + "," + a.head
 
-                featureBuilder.addFeature(startIndex, 0, combineFields(key), value)
+                if(combineFields.contains(key1)) {
+                    val value = if(actionSeq(a.last) != 0.0) actionSeq(a.head) / actionSeq(a.last) else 0.0
+                    featureBuilder.addFeature(startIndex, 0, combineFields(key1), value)
+                }
+
+                if(combineFields.contains(key2)) {
+                    val value = if(actionSeq(a.head) != 0.0) actionSeq(a.last) / actionSeq(a.head) else 0.0
+                    featureBuilder.addFeature(startIndex, 0, combineFields(key2), value)
+                }
             }
 
         startIndex + combineFields.size
