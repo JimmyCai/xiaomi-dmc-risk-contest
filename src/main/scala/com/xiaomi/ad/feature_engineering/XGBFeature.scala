@@ -49,6 +49,25 @@ object XGBFeature {
             .toSet
         val combineNeedFieldsBroadCast = spark.sparkContext.broadcast(combineNeedFields)
 
+        val combineLogFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-log-need-fields.txt"))
+            .getLines()
+            .map { line =>
+                val split = line.split("\t")
+                split.head -> split.last.toInt
+            }
+            .toMap
+        val combineLogFieldsBroadCast = spark.sparkContext.broadcast(combineLogFields)
+
+        val combineLogNeedFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-log-need-fields.txt"))
+            .getLines()
+            .flatMap { line =>
+                val split = line.split("\t")
+                val ss = split.head.split(",")
+                Seq(ss.head.toInt, ss.last.toInt)
+            }
+            .toSet
+        val combineLogNeedFieldsBroadCast = spark.sparkContext.broadcast(combineLogNeedFields)
+
         val outUser = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/out_user.txt"))
             .getLines()
             .map { line =>
@@ -70,7 +89,9 @@ object XGBFeature {
 
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.max)
 
-                startIndex = encodeCombineFeatures(featureBuilder, ual, startIndex, combineNeedFieldsBroadCast.value, combineFieldsBroadCast.value)(MergedMethod.max)
+//                startIndex = encodeCombineFeatures(featureBuilder, ual, startIndex, combineNeedFieldsBroadCast.value, combineFieldsBroadCast.value)(MergedMethod.avg)
+
+                startIndex = encodeCombineLogFeatures(featureBuilder, ual, startIndex, combineLogNeedFieldsBroadCast.value, combineLogFieldsBroadCast.value)(MergedMethod.avg)
 
                 startIndex = MissingValue.encode(featureBuilder, ual, startIndex)
 
@@ -150,5 +171,40 @@ object XGBFeature {
             }
 
         startIndex + combineFields.size
+    }
+
+    def encodeCombineLogFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, xgbLogFields: Set[Int], combineLogFields: Map[String, Int])(implicit mergedMethod: Seq[Double] => Double) = {
+        val actionSeq = ual.actions
+            .values
+            .filter(_.nonEmpty)
+            .flatMap { curAction =>
+                curAction
+                    .filter { case(index, _) =>
+                        xgbLogFields.contains(index)
+                    }
+            }
+            .groupBy(_._1)
+            .map { case (k, vs) =>
+                val vss = vs.toSeq.map(_._2)
+                k -> mergedMethod(vss)
+            }
+
+        actionSeq
+            .keys
+            .toSeq
+            .sorted
+            .combinations(2)
+            .filter { a =>
+                val key = a.head + "," + a.last
+                combineLogFields.contains(key)
+            }
+            .foreach { a =>
+                val key = a.head + "," + a.last
+                val value = actionSeq(a.head) * actionSeq(a.last)
+
+                featureBuilder.addFeature(startIndex, 0, combineLogFields(key), if(value == 0.0) 0.0 else Math.log(value))
+            }
+
+        startIndex + combineLogFields.size
     }
 }

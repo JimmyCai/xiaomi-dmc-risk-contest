@@ -59,25 +59,29 @@ object XGBNeedFields {
     }
 
     def main(args: Array[String]): Unit = {
-        val bw = new BufferedWriter(new FileWriter(new File("/home/mi/Desktop/combine-need-fields.txt")))
+        val bw = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/combine-log-need-fields.txt")))
 
         val allMap = Source.fromInputStream(getClass.getResourceAsStream("/combine-try-fields.txt"))
             .getLines()
             .map { line =>
                 val split = line.split("\t")
-                split.last -> split.head
+                split.last.toInt -> split.head
             }
             .toMap
 
-        val need = Source.fromFile("/home/mi/Desktop/com-need.txt")
+        val t = Source.fromInputStream(getClass.getResourceAsStream("/com-log-feature.txt"))
             .getLines()
             .map { line =>
                 val split = line.split(",")
-                val need = split.head
+                val need = split.head.toInt
                 need
             }
             .toSeq
             .sorted
+
+        t.foreach(println)
+
+        t
             .map { n =>
                 allMap(n)
             }
