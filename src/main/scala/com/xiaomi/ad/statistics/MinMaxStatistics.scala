@@ -43,7 +43,7 @@ object MinMaxStatistics {
                 val end = Math.floor(sortedVs.size * 0.95).toInt
                 assert(start <= end)
                 assert(sortedVs(start) <= sortedVs(end))
-                f"$k\t${sortedVs(start)%1.4f}\t${sortedVs(end)%1.4f}"
+                f"$k\t${sortedVs(start)}%1.4f\t${sortedVs(end)}%1.4f"
             }
             .repartition(1)
             .write
