@@ -30,7 +30,18 @@ xgb多模型-线上
 
 
 xbg+组合特征
+验证集：
+[696]   eval-auc:0.828088       train-auc:0.955805
+[799]   eval-auc:0.828194       train-auc:0.960808
+[950]   eval-auc:0.82903        train-auc:0.967083
 
+train:
+[799]	train-auc:0.955851
+线上：0.86367
+多加n轮使得validate最好
+[9]	train-auc:0.967096
+线上：0.86494
+效果不好，不加这个特征
 
 xgb+log组合特征
 train:[899]	train-auc:0.957543
