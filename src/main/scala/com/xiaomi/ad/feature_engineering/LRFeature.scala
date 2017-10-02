@@ -103,7 +103,7 @@ object LRFeature {
             }
 
 
-        val ansDF = tDF.orderBy($"_1")
+        val ansDF = tDF.orderBy($"user")
             .map { r =>
                 r.user + "\t" + r.featureSize + "\t" + r.features
             }
