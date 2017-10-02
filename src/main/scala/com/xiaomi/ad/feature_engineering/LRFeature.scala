@@ -99,13 +99,13 @@ object LRFeature {
 
                 startIndex = MissingValue.encode(featureBuilder, ual, startIndex)
 
-                (ual.user, startIndex - 1, ual.label + featureBuilder.getFeature())
+                FeatureEncoded(ual.user, startIndex - 1, ual.label + featureBuilder.getFeature())
             }
 
 
         val ansDF = tDF.orderBy($"_1")
             .map { r =>
-                r._1 + "\t" + r._2 + "\t" + r._3
+                r.user + "\t" + r.featureSize + "\t" + r.features
             }
 
         ansDF
