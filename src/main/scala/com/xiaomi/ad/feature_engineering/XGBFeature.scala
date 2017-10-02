@@ -30,7 +30,7 @@ object XGBFeature {
             .toMap
         val needFieldsBroadCast = spark.sparkContext.broadcast(needFields)
 
-        val combineFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-try-fields.txt"))
+        val combineFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-need-fields.txt"))
             .getLines()
             .map { line =>
                 val split = line.split("\t")
@@ -39,7 +39,7 @@ object XGBFeature {
             .toMap
         val combineFieldsBroadCast = spark.sparkContext.broadcast(combineFields)
 
-        val combineNeedFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-try-fields.txt"))
+        val combineNeedFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-need-fields.txt"))
             .getLines()
             .flatMap { line =>
                 val split = line.split("\t")
@@ -86,15 +86,15 @@ object XGBFeature {
                 val featureBuilder = new FeatureBuilder
                 var startIndex = 1
 
-//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.avg)
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.avg)
 
-//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.max)
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.max)
 
                 startIndex = encodeCombineFeatures(featureBuilder, ual, startIndex, combineNeedFieldsBroadCast.value, combineFieldsBroadCast.value)(MergedMethod.avg)
 
-//                startIndex = encodeCombineLogFeatures(featureBuilder, ual, startIndex, combineLogNeedFieldsBroadCast.value, combineLogFieldsBroadCast.value)(MergedMethod.avg)
+                startIndex = encodeCombineLogFeatures(featureBuilder, ual, startIndex, combineLogNeedFieldsBroadCast.value, combineLogFieldsBroadCast.value)(MergedMethod.avg)
 
-//                startIndex = MissingValue.encode(featureBuilder, ual, startIndex)
+                startIndex = MissingValue.encode(featureBuilder, ual, startIndex)
 
                 FeatureEncoded(ual.user, startIndex - 1, ual.label + featureBuilder.getFeature())
             }

@@ -58,8 +58,8 @@ object XGBNeedFields {
         bw.close()
     }
 
-    def main3(args: Array[String]): Unit = {
-        val bw = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/combine-log-need-fields.txt")))
+    def main(args: Array[String]): Unit = {
+        val bw = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/combine-need-fields.txt")))
 
         val allMap = Source.fromInputStream(getClass.getResourceAsStream("/combine-try-fields.txt"))
             .getLines()
@@ -69,7 +69,7 @@ object XGBNeedFields {
             }
             .toMap
 
-        val t = Source.fromInputStream(getClass.getResourceAsStream("/com-log-feature.txt"))
+        val t = Source.fromInputStream(getClass.getResourceAsStream("/com_features.txt"))
             .getLines()
             .map { line =>
                 val split = line.split(",")
@@ -78,8 +78,6 @@ object XGBNeedFields {
             }
             .toSeq
             .sorted
-
-        t.foreach(println)
 
         t
             .map { n =>
@@ -94,7 +92,7 @@ object XGBNeedFields {
         bw.close()
     }
 
-    def main(args: Array[String]): Unit = {
+    def main3(args: Array[String]): Unit = {
         val bw = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/combine-try-fields.txt")))
 
         val t = Source.fromInputStream(getClass.getResourceAsStream("/xgb-importance.txt"))
