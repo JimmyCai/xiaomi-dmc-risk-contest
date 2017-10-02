@@ -60,7 +60,7 @@ object MinMaxStatistics {
             .as[String]
             .map { line =>
                 val splits = line.split("\t")
-                splits.head.toInt -> (splits(1).toDouble, splits(2).toDouble)
+                splits.head.toInt -> MinMax(splits(1).toDouble, splits(2).toDouble)
             }
             .collect()
             .toMap

@@ -2,7 +2,7 @@ package com.xiaomi.ad.feature_engineering
 
 import com.twitter.scalding.Args
 import com.xiaomi.ad.others.UALProcessed
-import com.xiaomi.ad.statistics.MinMaxStatistics
+import com.xiaomi.ad.statistics.{MinMax, MinMaxStatistics}
 import com.xiaomi.ad.tools.MergedMethod
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.{SaveMode, SparkSession}
@@ -117,7 +117,7 @@ object LRFeature {
         spark.stop()
     }
 
-    def encodeFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, lrFields: Map[Int, Int], minMaxMap: Map[Int, (Double, Double)])(implicit mergedMethod: Seq[Double] => Double) = {
+    def encodeFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, lrFields: Map[Int, Int], minMaxMap: Map[Int, MinMax])(implicit mergedMethod: Seq[Double] => Double) = {
         val actionSeq = ual.actions
             .values
             .filter(_.nonEmpty)
@@ -137,13 +137,13 @@ object LRFeature {
 
         actionSeq
             .foreach { case(index, value) =>
-                featureBuilder.addFeature(startIndex, 0, lrFields(index), Discretization.minMax(minMaxMap(index)._1, minMaxMap(index)._2, value))
+                featureBuilder.addFeature(startIndex, 0, lrFields(index), Discretization.minMax(minMaxMap(index).min, minMaxMap(index).max, value))
             }
 
         startIndex + lrFields.size
     }
 
-    def encodeCombineFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, lrFields: Set[Int], combineFields: Map[String, Int], minMaxMap: Map[Int, (Double, Double)])(implicit mergedMethod: Seq[Double] => Double) = {
+    def encodeCombineFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, lrFields: Set[Int], combineFields: Map[String, Int], minMaxMap: Map[Int, MinMax])(implicit mergedMethod: Seq[Double] => Double) = {
         val actionSeq = ual.actions
             .values
             .filter(_.nonEmpty)
@@ -172,8 +172,8 @@ object LRFeature {
             .foreach { a =>
                 val key1 = a.head + "," + a.last
                 val key2 = a.last + "," + a.head
-                val fi = Discretization.minMax(minMaxMap(a.head)._1, minMaxMap(a.head)._2, actionSeq(a.head))
-                val se = Discretization.minMax(minMaxMap(a.last)._1, minMaxMap(a.last)._2, actionSeq(a.last))
+                val fi = Discretization.minMax(minMaxMap(a.head).min, minMaxMap(a.head).max, actionSeq(a.head))
+                val se = Discretization.minMax(minMaxMap(a.last).min, minMaxMap(a.last).max, actionSeq(a.last))
                 if(combineFields.contains(key1)) {
                     featureBuilder.addFeature(startIndex, 0, combineFields(key1), if(se == 0.0) 0.0 else fi / se)
                 }
@@ -186,7 +186,7 @@ object LRFeature {
         startIndex + combineFields.size
     }
 
-    def encodeCombineLogFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, lrLogFields: Set[Int], combineLogFields: Map[String, Int], minMaxMap: Map[Int, (Double, Double)])(implicit mergedMethod: Seq[Double] => Double) = {
+    def encodeCombineLogFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, lrLogFields: Set[Int], combineLogFields: Map[String, Int], minMaxMap: Map[Int, MinMax])(implicit mergedMethod: Seq[Double] => Double) = {
         val actionSeq = ual.actions
             .values
             .filter(_.nonEmpty)
@@ -213,8 +213,8 @@ object LRFeature {
             }
             .foreach { a =>
                 val key = a.head + "," + a.last
-                val fi = Discretization.minMax(minMaxMap(a.head)._1, minMaxMap(a.head)._2, actionSeq(a.head))
-                val se = Discretization.minMax(minMaxMap(a.last)._1, minMaxMap(a.last)._2, actionSeq(a.last))
+                val fi = Discretization.minMax(minMaxMap(a.head).min, minMaxMap(a.head).max, actionSeq(a.head))
+                val se = Discretization.minMax(minMaxMap(a.last).min, minMaxMap(a.last).max, actionSeq(a.last))
                 val value = fi * se
 
                 featureBuilder.addFeature(startIndex, 0, combineLogFields(key), if(value == 0.0) 0.0 else Math.log(value))
