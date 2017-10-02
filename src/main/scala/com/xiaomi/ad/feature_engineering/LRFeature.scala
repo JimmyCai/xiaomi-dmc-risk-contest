@@ -81,6 +81,7 @@ object LRFeature {
         val minMaxStatisticsBroadCast = spark.sparkContext.broadcast(minMaxStatistics)
 
         val tDF = spark.read.parquet(args("input"))
+            .repartition(100)
             .as[UALProcessed]
             .filter { ual =>
                 !outUserBroadCast.value.contains(ual.user)
