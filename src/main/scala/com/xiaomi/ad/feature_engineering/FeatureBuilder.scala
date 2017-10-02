@@ -25,7 +25,7 @@ class FeatureBuilder {
         else if(value < 0.8) 3
         else 4
 
-        feature.append(s" ${startIndex + (index - 1) * 5 + oneHotIndex}: 1.0")
+        feature.append(s" ${startIndex + (index - 1) * 5 + oneHotIndex}:1.0")
         startIndex + (featureSize * 5)
     }
 
