@@ -38,14 +38,11 @@ object MinMaxStatistics {
             .mapGroups { case(k, vs) =>
                 val vsSeq = vs.toSeq
                 val sortedVs = vsSeq.map(_._2).sorted
-                sortedVs.zipWithIndex.drop(1)
-                    .foreach { case(cv, i) =>
-                        assert(cv >= sortedVs(i - 1))
-                    }
 
                 val start = Math.floor(sortedVs.size * 0.05).toInt
                 val end = Math.floor(sortedVs.size * 0.95).toInt
                 assert(start <= end)
+                assert(sortedVs(start) <= sortedVs(end))
                 f"$k\t${sortedVs(start)%1.4f}\t${sortedVs(end)%1.4f}"
             }
             .repartition(1)
