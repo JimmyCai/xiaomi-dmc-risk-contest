@@ -26,7 +26,8 @@ object BasicProfileFeatureProxy {
 
     def phoneVersionProxy(featureBuilder: FeatureBuilder, startIndex: Int, version: Seq[Int]) = {
         val indexes = version.map(i => phoneVersionMap.getOrElse(i, 0)).distinct.sorted
-        indexes
+        val finalIndexes = if(indexes.isEmpty) Seq(0) else indexes
+        finalIndexes
             .map { i =>
                 featureBuilder.addFeature(startIndex, 6, i, 1.0)
             }
