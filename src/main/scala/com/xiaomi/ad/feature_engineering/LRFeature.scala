@@ -97,7 +97,7 @@ object LRFeature {
 
                 startIndex = encodeCombineLogFeatures(featureBuilder, ual, startIndex, combineLogNeedFieldsBroadCast.value, combineLogFieldsBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
 
-                startIndex = MissingValue.encode(featureBuilder, ual, startIndex)
+                startIndex = MissingValue.encodeLR(featureBuilder, ual, startIndex)
 
                 FeatureEncoded(ual.user, startIndex - 1, ual.label + featureBuilder.getFeature())
             }
