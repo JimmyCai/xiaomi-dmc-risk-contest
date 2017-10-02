@@ -31,25 +31,6 @@ object LRFeature {
             .toMap
         val needFieldsBroadCast = spark.sparkContext.broadcast(needFields)
 
-        val combineFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-need-fields.txt"))
-            .getLines()
-            .map { line =>
-                val split = line.split("\t")
-                split.head -> split.last.toInt
-            }
-            .toMap
-        val combineFieldsBroadCast = spark.sparkContext.broadcast(combineFields)
-
-        val combineNeedFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-need-fields.txt"))
-            .getLines()
-            .flatMap { line =>
-                val split = line.split("\t")
-                val ss = split.head.split(",")
-                Seq(ss.head.toInt, ss.last.toInt)
-            }
-            .toSet
-        val combineNeedFieldsBroadCast = spark.sparkContext.broadcast(combineNeedFields)
-
         val combineLogFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-log-need-fields.txt"))
             .getLines()
             .map { line =>
@@ -93,8 +74,6 @@ object LRFeature {
                 startIndex = BasicProfile.encode(featureBuilder, ual, startIndex)
 
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
-
-                startIndex = encodeCombineFeatures(featureBuilder, ual, startIndex, combineNeedFieldsBroadCast.value, combineFieldsBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
 
                 startIndex = encodeCombineLogFeatures(featureBuilder, ual, startIndex, combineLogNeedFieldsBroadCast.value, combineLogFieldsBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
 
