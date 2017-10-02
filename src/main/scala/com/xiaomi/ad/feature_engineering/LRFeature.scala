@@ -75,7 +75,7 @@ object LRFeature {
                 line.split("\t").head
             }
             .toSeq
-        val outUserBroadCast = spark.sparkContext.broadcast(outUser)
+//        val outUserBroadCast = spark.sparkContext.broadcast(outUser)
 
         val minMaxStatistics = MinMaxStatistics.getMinMaxStatistics(spark, args("minMax"))
         val minMaxStatisticsBroadCast = spark.sparkContext.broadcast(minMaxStatistics)
@@ -83,9 +83,9 @@ object LRFeature {
         val tDF = spark.read.parquet(args("input"))
             .repartition(100)
             .as[UALProcessed]
-            .filter { ual =>
-                !outUserBroadCast.value.contains(ual.user)
-            }
+//            .filter { ual =>
+//                !outUserBroadCast.value.contains(ual.user)
+//            }
             .map { ual =>
                 val featureBuilder = new FeatureBuilder
                 var startIndex = 1
