@@ -116,7 +116,7 @@ object LRFeature {
 
         actionSeq
             .foreach { case(index, value) =>
-                featureBuilder.addFeature(startIndex, 0, lrFields(index), Discretization.minMax(minMaxMap(index).min, minMaxMap(index).max, value))
+                featureBuilder.addOneHotFeature(startIndex, 0, lrFields(index), Discretization.minMax(minMaxMap(index).min, minMaxMap(index).max, value))
             }
 
         startIndex + lrFields.size
@@ -196,7 +196,7 @@ object LRFeature {
                 val se = Discretization.minMax(minMaxMap(a.last).min, minMaxMap(a.last).max, actionSeq(a.last))
                 val value = fi * se
 
-                featureBuilder.addFeature(startIndex, 0, combineLogFields(key), if(value == 0.0) 0.0 else Math.log(value))
+                featureBuilder.addOneHotFeature(startIndex, 0, combineLogFields(key), if(value == 0.0) 0.0 else Math.log(value))
             }
 
         startIndex + combineLogFields.size
