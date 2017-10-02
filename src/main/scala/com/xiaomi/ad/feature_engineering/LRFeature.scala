@@ -119,7 +119,7 @@ object LRFeature {
                 featureBuilder.addOneHotFeature(startIndex, 0, lrFields(index), Discretization.minMax(minMaxMap(index).min, minMaxMap(index).max, value))
             }
 
-        startIndex + lrFields.size
+        startIndex + lrFields.size * 5
     }
 
     def encodeCombineFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, lrFields: Set[Int], combineFields: Map[String, Int], minMaxMap: Map[Int, MinMax])(implicit mergedMethod: Seq[Double] => Double) = {
@@ -199,6 +199,6 @@ object LRFeature {
                 featureBuilder.addOneHotFeature(startIndex, 0, combineLogFields(key), if(value == 0.0) 0.0 else Math.log(value))
             }
 
-        startIndex + combineLogFields.size
+        startIndex + combineLogFields.size * 5
     }
 }
