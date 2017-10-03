@@ -4,6 +4,7 @@ import java.security.MessageDigest
 
 import com.twitter.scalding.Args
 import com.xiaomi.ad.feature_engineering.FeatureEncoded
+import org.apache.avro.SchemaBuilder.ArrayBuilder
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.{SaveMode, SparkSession}
 
@@ -33,7 +34,7 @@ object Repetition {
 
         val changedPositiveDF = positiveDF
             .map { fe =>
-                val ans = fe.copy(user = md5OfString(fe.user))
+                val ans = fe.copy(user = MD5(fe.user))
                 s"${ans.user}\t${ans.featureSize}\t${ans.features}"
             }
 
@@ -48,8 +49,10 @@ object Repetition {
         spark.stop()
     }
 
-    private def md5OfString(input: String) = {
-        val bytes = MessageDigest.getInstance("MD5").digest(input.getBytes)
-        new String(bytes)
+    def MD5(s: String) = {
+        val m = java.security.MessageDigest.getInstance("MD5")
+        val b = s.getBytes("UTF-8")
+        m.update(b,0,b.length)
+        new java.math.BigInteger(1,m.digest()).toString(16)
     }
 }
