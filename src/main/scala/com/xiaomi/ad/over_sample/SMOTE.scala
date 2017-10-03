@@ -54,7 +54,8 @@ object SMOTE {
 
         val syntheticData = dataArray.mapPartitionsWithIndex(createSyntheticData(_,_,sampleDataNearestNeighbors)).persist()
         println("Synthetic Data Count "+syntheticData.count.toString)
-        val newData = syntheticData.union(sc.textFile(inPath)).repartition(numPartitions)
+        val newData = syntheticData
+//        val newData = syntheticData.union(sc.textFile(inPath)).repartition(numPartitions)
         println("New Line Count "+newData.count.toString)
         newData.saveAsTextFile(outPath)
     }
