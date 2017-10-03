@@ -8,6 +8,7 @@ from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, Gradi
 from sklearn.linear_model import LogisticRegression
 from utils import *
 from sklearn import cross_validation, linear_model
+from sklearn.datasets import load_svmlight_file
 
 # MAX_ITERS = 1
 # N_TREES = 5
@@ -245,7 +246,19 @@ if __name__ == '__main__':
 
     np.random.seed(0)  # seed to shuffle the train set
 
-    X_org, y_org, test_x, test_uid = load_data_1()
+    train_path = '../xgb/data/test/train/20171001-86843.svm.txt'
+    test_path = '../xgb/data/test/test/20171001-86843.svm.txt'
+    ins_path = '../xgb/data/test/test/20171001-ins_id.txt'
+    dtrain = load_svmlight_file(train_path)
+    dtest = load_svmlight_file(test_path)
+
+    with open(ins_path) as f:
+        content = f.readlines()
+
+    X_org = dtrain[0].toarray()
+    y_org = dtrain[1]
+    test_x = dtest[0].toarray()
+    test_uid = [x.strip() for x in content]
 
     offline(X_org, y_org)
     online(X_org, y_org, test_x, test_uid)
