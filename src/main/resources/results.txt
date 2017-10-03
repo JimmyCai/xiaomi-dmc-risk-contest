@@ -52,9 +52,12 @@ TODO:
 1.xgb跑36个模型bagging的结果验证
 
 2.验证组合feature,相乘后取log
+0.001的提升
 
 3.验证组合feature,相除
+线上and验证集效果不好
 
 4.类别不平衡问题，验证加入over-sample
+验证集效果不好
 
 5.加入large-SVM
