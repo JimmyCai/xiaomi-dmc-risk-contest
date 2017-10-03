@@ -90,7 +90,7 @@ object SMOTE {
                     val featureSize = sampleFeatures.length
 
                     val user = md5OfString(s"sample$j")
-                    result.::=(s"$user\t$featureSize\t1.0 $featureStr")
+                    result.::=(s"$user\t$featureSize\t1 $featureStr")
                 }
             }
         result.iterator
