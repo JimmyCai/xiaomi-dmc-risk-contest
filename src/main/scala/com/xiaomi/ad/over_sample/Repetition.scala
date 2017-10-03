@@ -18,6 +18,7 @@ object Repetition {
 
     def execute(args: Args, sparkConf: SparkConf) = {
         val spark = SparkSession.builder().config(sparkConf).getOrCreate()
+        import spark.implicits._
 
         val inputDF = spark.read.text(args("input")).as[String]
 
