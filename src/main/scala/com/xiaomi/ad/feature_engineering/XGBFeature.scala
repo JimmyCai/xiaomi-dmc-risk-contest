@@ -86,11 +86,11 @@ object XGBFeature {
                 val featureBuilder = new FeatureBuilder
                 var startIndex = 1
 
+                startIndex = BasicProfile.encodeNonOneHot(featureBuilder, ual, startIndex)
+
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.avg)
 
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.max)
-
-//                startIndex = encodeCombineFeatures(featureBuilder, ual, startIndex, combineNeedFieldsBroadCast.value, combineFieldsBroadCast.value)(MergedMethod.avg)
 
                 startIndex = encodeCombineLogFeatures(featureBuilder, ual, startIndex, combineLogNeedFieldsBroadCast.value, combineLogFieldsBroadCast.value)(MergedMethod.avg)
 
