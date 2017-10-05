@@ -61,12 +61,27 @@ object MergeUserAction4Train {
                 UALProcessed(user, labelTime, actionMap ++ fillUpMap, actionSeq.head.label)
             }
 
-        joinDF
-            .repartition(10)
-            .write
+        val positiveValidateDF = joinDF
+            .filter(_.label == 1)
+            .sample(false, 0.1)
+
+        val negativeValidateDF = joinDF
+            .filter(_.label == 0)
+            .sample(false, 0.1)
+
+        val validateDF = positiveValidateDF.union(negativeValidateDF).repartition(1)
+
+        val trainDF = joinDF.except(validateDF).repartition(10)
+
+        validateDF.write
             .format("parquet")
             .mode(SaveMode.Overwrite)
-            .save(args("output"))
+            .save(args("output") + "/validate")
+
+        trainDF.write
+            .format("parquet")
+            .mode(SaveMode.Overwrite)
+            .save(args("output") + "/train")
 
         spark.stop()
     }

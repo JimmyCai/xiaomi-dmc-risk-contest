@@ -1,5 +1,5 @@
 xgb模型
-1.avg, max, missing_num
+1.avg, max, missing_num  xgb_feature_v1_20170929
 验证集：
 [739]   eval-auc:0.826016       train-auc:0.950718
 [820]   eval-auc:0.82624        train-auc:0.954262
@@ -23,7 +23,7 @@ xgb多模型
 跑36个模型，然后求平均
 验证集：0.835633174677
 
-xgb多模型-线上
+xgb多模型-线上  xgb_feature_v1_20170929
 15个模型，然后求平均：0.86858
 18个模型，然后求平均：0.86890
 25个模型，然后求平均：0.86906
