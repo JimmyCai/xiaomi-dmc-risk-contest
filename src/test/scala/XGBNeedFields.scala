@@ -58,7 +58,7 @@ object XGBNeedFields {
         bw.close()
     }
 
-    def main(args: Array[String]): Unit = {
+    def main4(args: Array[String]): Unit = {
         val bw = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/combine-need-fields.txt")))
 
         val allMap = Source.fromInputStream(getClass.getResourceAsStream("/combine-try-fields.txt"))
@@ -115,6 +115,34 @@ object XGBNeedFields {
             .zipWithIndex
             .foreach { case(v, i) =>
                 bw.write(s"$v\t$i\n")
+            }
+
+        bw.flush()
+        bw.close()
+    }
+
+    def main(args: Array[String]): Unit = {
+        val bw = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/max-fields.txt")))
+
+        val t = Source.fromInputStream(getClass.getResourceAsStream("/lr-fields.txt"))
+            .getLines()
+            .map { line =>
+                val split = line.split("\t")
+                split.last.toInt -> split.head.toInt
+            }
+            .toMap
+
+        Source.fromInputStream(getClass.getResourceAsStream("/max-importance.txt"))
+            .getLines()
+            .map { line =>
+                val split = line.split(",")
+                t(split.head.toInt)
+            }
+            .toSeq
+            .sorted
+            .zipWithIndex
+            .foreach { case(k, i) =>
+                bw.write(s"$k\t$i\n")
             }
 
         bw.flush()
