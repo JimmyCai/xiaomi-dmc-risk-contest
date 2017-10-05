@@ -86,7 +86,7 @@ object BasicProfile {
         uALProcessed
             .actions
             .toSeq
-            .sortBy(-_._1.toInt)
+            .sortBy(-_._1.replace("-", "").trim.toInt)
             .flatMap { case(time, action) =>
                 action
                     .filter(i => idSeq.contains(i._1))
@@ -99,7 +99,7 @@ object BasicProfile {
     def getActionAge(ual: UALProcessed) = {
         ual.actions
             .toSeq
-            .sortBy(-_._1.toInt)
+            .sortBy(-_._1.replace("-", "").trim.toInt)
             .flatMap{ case(time, action) =>
                 action
                     .filter{ oa =>
