@@ -71,7 +71,19 @@ object MergeUserAction4Train {
 
         val validateDF = positiveValidateDF.union(negativeValidateDF).repartition(1)
 
-        val trainDF = joinDF.except(validateDF).repartition(10)
+        val validateUserBroadCast = spark.sparkContext.broadcast(
+            validateDF
+                .select($"user")
+                .as[String]
+                .collect()
+                .toSet
+        )
+
+        val trainDF = joinDF
+            .filter { ual =>
+                !validateUserBroadCast.value.contains(ual.user)
+            }
+            .repartition(10)
 
         validateDF.write
             .format("parquet")
