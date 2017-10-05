@@ -2,6 +2,8 @@ package com.xiaomi.ad.feature_engineering
 
 import com.xiaomi.ad.others.UALProcessed
 
+import scala.util.Try
+
 object BasicProfile {
     def encode(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int) = {
         //性别
@@ -44,40 +46,40 @@ object BasicProfile {
     def encodeNonOneHot(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int) = {
         //性别
         val userSex = getActionSeq(ual, Seq(1, 57))
-        val ageStart = featureBuilder.addOneHotFeature(startIndex, 1, 0, userSex.head)
+        val ageStart = featureBuilder.addOneHotFeature(startIndex, 1, 0, Try(userSex.head).getOrElse(0))
 
         //年龄
         val userAge = getActionAge(ual)
-        val phoneVersionDetailStart = featureBuilder.addOneHotFeature(ageStart, 1, 0, userAge.head)
+        val phoneVersionDetailStart = featureBuilder.addOneHotFeature(ageStart, 1, 0, Try(userAge.head).getOrElse(0))
 
         //手机的具体型号
         val phoneVersionDetail = getActionSeq(ual, Seq(3))
-        val phoneBigVersionStart = featureBuilder.addOneHotFeature(phoneVersionDetailStart, 1, 0, phoneVersionDetail.head)
+        val phoneBigVersionStart = featureBuilder.addOneHotFeature(phoneVersionDetailStart, 1, 0, Try(phoneVersionDetail.head).getOrElse(0))
 
         //手机的大型号
         val phoneBigVersion = getActionSeq(ual, Seq(4))
-        val bindPhoneStart = featureBuilder.addOneHotFeature(phoneBigVersionStart, 1, 0, phoneBigVersion.head)
+        val bindPhoneStart = featureBuilder.addOneHotFeature(phoneBigVersionStart, 1, 0, Try(phoneBigVersion.head).getOrElse(0))
         //绑定电话
         val bindPhone = getActionSeq(ual, Seq(11))
-        val bindEmailStart = featureBuilder.addOneHotFeature(bindPhoneStart, 1, 0, bindPhone.head)
+        val bindEmailStart = featureBuilder.addOneHotFeature(bindPhoneStart, 1, 0, Try(bindPhone.head).getOrElse(0))
 
         //绑定邮箱
         val bindEmail = getActionSeq(ual, Seq(12))
-        val bindWeiBoStart = featureBuilder.addOneHotFeature(bindEmailStart, 1, 0, bindEmail.head)
+        val bindWeiBoStart = featureBuilder.addOneHotFeature(bindEmailStart, 1, 0, Try(bindEmail.head).getOrElse(0))
 
         //绑定微博
         val bindWeiBo = getActionSeq(ual, Seq(13))
-        val provinceStart = featureBuilder.addOneHotFeature(bindWeiBoStart, 1, 0, bindWeiBo.head)
+        val provinceStart = featureBuilder.addOneHotFeature(bindWeiBoStart, 1, 0, Try(bindWeiBo.head).getOrElse(0))
 
         //省份
         val provinces = getActionSeq(ual, Seq(18))
-        val provinceChangedStart = featureBuilder.addOneHotFeature(provinceStart, 1, 0, provinces.head)
+        val provinceChangedStart = featureBuilder.addOneHotFeature(provinceStart, 1, 0, Try(provinces.head).getOrElse(0))
 
-        val cityStart = featureBuilder.addOneHotFeature(provinceChangedStart, 1, 0, provinces.size)
+        val cityStart = featureBuilder.addOneHotFeature(provinceChangedStart, 1, 0, Try(provinces.size).getOrElse(0))
 
         //城市
         val cities = getActionSeq(ual, Seq(19))
-        val cityChangeStart = featureBuilder.addOneHotFeature(cityStart, 1, 0, cities.head)
+        val cityChangeStart = featureBuilder.addOneHotFeature(cityStart, 1, 0, Try(cities.head).getOrElse(0))
 
         featureBuilder.addOneHotFeature(cityChangeStart, 1, 0, cities.size)
     }
