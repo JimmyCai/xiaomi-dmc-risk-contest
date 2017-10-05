@@ -46,42 +46,42 @@ object BasicProfile {
     def encodeNonOneHot(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int) = {
         //性别
         val userSex = getActionSeq(ual, Seq(1, 57)) :+ 0
-        val ageStart = featureBuilder.addOneHotFeature(startIndex, 1, 0, userSex.head)
+        val ageStart = featureBuilder.addFeature(startIndex, 1, 0, userSex.head)
 
         //年龄
         val userAge = getActionAge(ual) :+ 0
-        val phoneVersionDetailStart = featureBuilder.addOneHotFeature(ageStart, 1, 0, userAge.head)
+        val phoneVersionDetailStart = featureBuilder.addFeature(ageStart, 1, 0, userAge.head)
 
         //手机的具体型号
         val phoneVersionDetail = getActionSeq(ual, Seq(3)) :+ 0
-        val phoneBigVersionStart = featureBuilder.addOneHotFeature(phoneVersionDetailStart, 1, 0, phoneVersionDetail.head)
+        val phoneBigVersionStart = featureBuilder.addFeature(phoneVersionDetailStart, 1, 0, phoneVersionDetail.head)
 
         //手机的大型号
         val phoneBigVersion = getActionSeq(ual, Seq(4)) :+ 0
-        val bindPhoneStart = featureBuilder.addOneHotFeature(phoneBigVersionStart, 1, 0, phoneBigVersion.head)
+        val bindPhoneStart = featureBuilder.addFeature(phoneBigVersionStart, 1, 0, phoneBigVersion.head)
         //绑定电话
         val bindPhone = getActionSeq(ual, Seq(11)) :+ 0
-        val bindEmailStart = featureBuilder.addOneHotFeature(bindPhoneStart, 1, 0, bindPhone.head)
+        val bindEmailStart = featureBuilder.addFeature(bindPhoneStart, 1, 0, bindPhone.head)
 
         //绑定邮箱
         val bindEmail = getActionSeq(ual, Seq(12)) :+ 0
-        val bindWeiBoStart = featureBuilder.addOneHotFeature(bindEmailStart, 1, 0, bindEmail.head)
+        val bindWeiBoStart = featureBuilder.addFeature(bindEmailStart, 1, 0, bindEmail.head)
 
         //绑定微博
         val bindWeiBo = getActionSeq(ual, Seq(13)) :+ 0
-        val provinceStart = featureBuilder.addOneHotFeature(bindWeiBoStart, 1, 0, bindWeiBo.head)
+        val provinceStart = featureBuilder.addFeature(bindWeiBoStart, 1, 0, bindWeiBo.head)
 
         //省份
         val provinces = getActionSeq(ual, Seq(18)) :+ 0
-        val provinceChangedStart = featureBuilder.addOneHotFeature(provinceStart, 1, 0, provinces.head)
+        val provinceChangedStart = featureBuilder.addFeature(provinceStart, 1, 0, provinces.head)
 
-        val cityStart = featureBuilder.addOneHotFeature(provinceChangedStart, 1, 0, provinces.size - 1)
+        val cityStart = featureBuilder.addFeature(provinceChangedStart, 1, 0, provinces.size - 1)
 
         //城市
         val cities = getActionSeq(ual, Seq(19)) :+ 0
-        val cityChangeStart = featureBuilder.addOneHotFeature(cityStart, 1, 0, cities.head)
+        val cityChangeStart = featureBuilder.addFeature(cityStart, 1, 0, cities.head)
 
-        featureBuilder.addOneHotFeature(cityChangeStart, 1, 0, cities.size - 1)
+        featureBuilder.addFeature(cityChangeStart, 1, 0, cities.size - 1)
     }
 
     def getActionSeq(uALProcessed: UALProcessed, idSeq: Seq[Int]) = {
