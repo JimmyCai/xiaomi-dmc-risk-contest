@@ -2,6 +2,7 @@ package com.xiaomi.ad.feature_engineering
 
 import com.twitter.scalding.Args
 import com.xiaomi.ad.others.UALProcessed
+import com.xiaomi.ad.statistics.{MinMax, MinMaxStatistics}
 import com.xiaomi.ad.tools.MergedMethod
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.{SaveMode, SparkSession}
@@ -49,6 +50,9 @@ object XGBFeature {
             .toSet
         val combineLogNeedFieldsBroadCast = spark.sparkContext.broadcast(combineLogNeedFields)
 
+        val minMaxStatistics = MinMaxStatistics.getMinMaxStatistics(spark, args("minMax"))
+        val minMaxStatisticsBroadCast = spark.sparkContext.broadcast(minMaxStatistics)
+
         val outUser = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/out_user.txt"))
             .getLines()
             .map { line =>
@@ -67,13 +71,9 @@ object XGBFeature {
                 val featureBuilder = new FeatureBuilder
                 var startIndex = 1
 
-                startIndex = BasicProfile.encodeNonOneHot(featureBuilder, ual, startIndex)
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.avg)
-
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.max)
-
-//                startIndex = encodeCombineLogFeatures(featureBuilder, ual, startIndex, combineLogNeedFieldsBroadCast.value, combineLogFieldsBroadCast.value)(MergedMethod.avg)
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.max)
 
                 startIndex = MissingValue.encode(featureBuilder, ual, startIndex)
 
@@ -94,7 +94,7 @@ object XGBFeature {
         spark.stop()
     }
 
-    def encodeFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, xgbFields: Map[Int, Int])(implicit mergedMethod: Seq[Double] => Double) = {
+    def encodeFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, xgbFields: Map[Int, Int], minMaxMap: Map[Int, MinMax])(implicit mergedMethod: Seq[Double] => Double) = {
         val actionSeq = ual.actions
             .values
             .filter(_.nonEmpty)
@@ -107,7 +107,10 @@ object XGBFeature {
             .groupBy(_._1)
             .map { case (k, vs) =>
                 val vss = vs.toSeq.map(_._2)
-                k -> mergedMethod(vss)
+                val mergedValue = mergedMethod(vss)
+                val minMax = minMaxMap(k)
+                val finalV = if(mergedValue < minMax.min) minMax.min else if(mergedValue > minMax.max) minMax.max else mergedValue
+                k -> finalV
             }
             .toSeq
             .sortBy(_._1)
