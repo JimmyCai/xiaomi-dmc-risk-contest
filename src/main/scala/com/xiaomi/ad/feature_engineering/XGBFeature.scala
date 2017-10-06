@@ -30,15 +30,6 @@ object XGBFeature {
             .toMap
         val needFieldsBroadCast = spark.sparkContext.broadcast(needFields)
 
-        val maxFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/max-fields.txt"))
-            .getLines()
-            .map { line =>
-                val split = line.split("\t")
-                split.head.toInt -> split.last.toInt
-            }
-            .toMap
-        val maxFieldsBroadCast = spark.sparkContext.broadcast(maxFields)
-
         val combineLogFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-log-need-fields.txt"))
             .getLines()
             .map { line =>
@@ -80,9 +71,9 @@ object XGBFeature {
 
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.avg)
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, maxFieldsBroadCast.value)(MergedMethod.max)
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value)(MergedMethod.max)
 
-                startIndex = encodeCombineLogFeatures(featureBuilder, ual, startIndex, combineLogNeedFieldsBroadCast.value, combineLogFieldsBroadCast.value)(MergedMethod.avg)
+//                startIndex = encodeCombineLogFeatures(featureBuilder, ual, startIndex, combineLogNeedFieldsBroadCast.value, combineLogFieldsBroadCast.value)(MergedMethod.avg)
 
                 startIndex = MissingValue.encode(featureBuilder, ual, startIndex)
 
