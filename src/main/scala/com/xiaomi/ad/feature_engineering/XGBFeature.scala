@@ -31,6 +31,15 @@ object XGBFeature {
             .toMap
         val needFieldsBroadCast = spark.sparkContext.broadcast(needFields)
 
+        val valueMedian = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/xgb-value-median.txt"))
+            .getLines()
+            .map { line =>
+                val split = line.split("\t")
+                split.head.toInt -> split.last.toDouble
+            }
+            .toMap
+        val valueMedianBroadCast = spark.sparkContext.broadcast(valueMedian)
+
         val combineLogFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-log-need-fields.txt"))
             .getLines()
             .map { line =>
@@ -71,7 +80,7 @@ object XGBFeature {
                 val featureBuilder = new FeatureBuilder
                 var startIndex = 1
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, valueMedianBroadCast.value)(MergedMethod.avg)
 
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.max)
 
@@ -92,6 +101,42 @@ object XGBFeature {
             .text(args("output"))
 
         spark.stop()
+    }
+
+    def encodeFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, xgbFields: Map[Int, Int], minMaxMap: Map[Int, MinMax], valueMedianMap: Map[Int, Double])(implicit mergedMethod: Seq[Double] => Double) = {
+        val actionSeqRow = ual.actions
+            .values
+            .filter(_.nonEmpty)
+            .flatMap { curAction =>
+                curAction
+                    .filter { case(index, _) =>
+                        xgbFields.contains(index)
+                    }
+            }
+            .groupBy(_._1)
+            .map { case (k, vs) =>
+                val vss = vs.toSeq.map(_._2)
+                val mergedValue = mergedMethod(vss)
+                val minMax = minMaxMap(k)
+                val finalV = if(mergedValue < minMax.min) minMax.min else if(mergedValue > minMax.max) minMax.max else mergedValue
+                k -> finalV
+            }
+
+        val actionSeqFillUp = valueMedianMap
+                .filter { case(id, value) =>
+                    !actionSeqRow.contains(id)
+                }
+
+        val actionSeq = (actionSeqRow ++ actionSeqFillUp)
+            .toSeq
+            .sortBy(_._1)
+
+        actionSeq
+            .foreach { case(index, value) =>
+                featureBuilder.addFeature(startIndex, 0, xgbFields(index), value)
+            }
+
+        startIndex + xgbFields.size
     }
 
     def encodeFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, xgbFields: Map[Int, Int], minMaxMap: Map[Int, MinMax])(implicit mergedMethod: Seq[Double] => Double) = {

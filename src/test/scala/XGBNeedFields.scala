@@ -121,7 +121,7 @@ object XGBNeedFields {
         bw.close()
     }
 
-    def main(args: Array[String]): Unit = {
+    def main5(args: Array[String]): Unit = {
         val bw = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/max-fields.txt")))
 
         val t = Source.fromInputStream(getClass.getResourceAsStream("/lr-fields.txt"))
@@ -143,6 +143,38 @@ object XGBNeedFields {
             .zipWithIndex
             .foreach { case(k, i) =>
                 bw.write(s"$k\t$i\n")
+            }
+
+        bw.flush()
+        bw.close()
+    }
+
+    def main(args: Array[String]): Unit = {
+        val bw = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/xgb-value-median.txt")))
+
+        val t = Source.fromInputStream(getClass.getResourceAsStream("/value-median"))
+            .getLines()
+            .map { line =>
+                val split = line.split("\t")
+                split.head.toInt -> split.last.toDouble
+            }
+            .toMap
+
+        Source.fromInputStream(getClass.getResourceAsStream("/xgb-importance.txt"))
+            .getLines()
+            .filter { line =>
+                val split = line.split("\t")
+                val id = split.head.toInt - 429
+                t.contains(id)
+            }
+            .take(100)
+            .map { line =>
+                val split = line.split("\t")
+                val id = split.head.toInt - 429
+                id -> t(id)
+            }
+            .foreach{ case(id, value) =>
+                bw.write(f"$id\t$value%1.4f\n")
             }
 
         bw.flush()
