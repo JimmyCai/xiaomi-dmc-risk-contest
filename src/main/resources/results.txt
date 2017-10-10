@@ -71,6 +71,16 @@ xgboost:0.75 + fm 0.25 = 0.87246
 
 
 LR模型:
-
 C=0.1, tol=1e-6, solver='liblinear', max_iter=1000, penalty='l1'
 验证集: train 0.8790246935 test 0.815583586996
+
+LR ensemble
+gbdt dart goss
+
+C=0.03, tol=1e-6, dual=False, solver='liblinear', max_iter=10000, penalty='l2', verbose=0, n_jobs=1
+cailiming_gbdt_dart_goss_86383
+rf太低0.78，所以去掉了
+
+rank-ensemble:
+xgb_ans['ovd_rate'] * 0.6 + other_tree_ans['ovd_rate'] * 0.1 + fm_ans['ovd_rate'] * 0.3
+0.873416037305
