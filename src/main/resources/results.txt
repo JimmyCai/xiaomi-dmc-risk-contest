@@ -66,5 +66,11 @@ TODO:
 单模型XGboost得到87041
 单模型FM得到85940
 模型融合
-xgboost:0.65 + fm 0.35 = 0.87254
+xgboost:0.65 + fm 0.35 = 0.87254  采用rank-ensemble得到0.87270
 xgboost:0.75 + fm 0.25 = 0.87246
+
+
+LR模型:
+
+C=0.1, tol=1e-6, solver='liblinear', max_iter=1000, penalty='l1'
+验证集: train 0.8790246935 test 0.815583586996

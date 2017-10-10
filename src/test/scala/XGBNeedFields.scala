@@ -149,7 +149,7 @@ object XGBNeedFields {
         bw.close()
     }
 
-    def main(args: Array[String]): Unit = {
+    def main6(args: Array[String]): Unit = {
         val bw = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/xgb-value-median.txt")))
 
         val t = Source.fromInputStream(getClass.getResourceAsStream("/value-median"))
@@ -175,6 +175,27 @@ object XGBNeedFields {
             }
             .foreach{ case(id, value) =>
                 bw.write(f"$id\t$value%1.4f\n")
+            }
+
+        bw.flush()
+        bw.close()
+    }
+
+    def main(args: Array[String]): Unit = {
+        val bw = new BufferedWriter(new FileWriter(new File("/home/mi/Desktop/app_stat_rate.txt")))
+
+        Source.fromFile("/home/mi/Documents/contest/dmc_risk_variable_app_stat")
+            .getLines()
+            .drop(1)
+            .zipWithIndex
+            .filter { case(id, index) =>
+                index % 4 == 2
+            }
+            .map(_._1)
+            .zipWithIndex
+            .foreach { case(idStr, index) =>
+                val id = idStr.split("\t").head
+                bw.write(s"$id\t$index\n")
             }
 
         bw.flush()
