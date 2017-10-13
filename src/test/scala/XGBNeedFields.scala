@@ -227,8 +227,8 @@ object XGBNeedFields {
     }
 
     def main(args: Array[String]): Unit = {
-        val bw1 = new BufferedWriter(new FileWriter(new File("/home/mi/Desktop/one-season-avg-fields.txt")))
-        val bw2 = new BufferedWriter(new FileWriter(new File("/home/mi/Desktop/one-season-max-fields.txt")))
+        val bw1 = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/one-month-avg-fields.txt")))
+        val bw2 = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/one-month-max-fields.txt")))
 
         val tMap = Source.fromInputStream(XGBNeedFields.getClass.getResourceAsStream("/lr-fields.txt"))
             .getLines()
@@ -238,7 +238,7 @@ object XGBNeedFields {
             }
             .toMap
 
-        val features = Source.fromInputStream(XGBNeedFields.getClass.getResourceAsStream("/one-season-feature-score.txt"))
+        val features = Source.fromInputStream(XGBNeedFields.getClass.getResourceAsStream("/one-month-feature-score.txt"))
             .getLines()
             .map { line =>
                 val split = line.split(",")

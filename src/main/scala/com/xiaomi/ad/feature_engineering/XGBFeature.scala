@@ -22,7 +22,7 @@ object XGBFeature {
         val spark = SparkSession.builder().config(sparkConf).getOrCreate()
         import spark.implicits._
 
-        val needFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/lr-fields.txt"))
+        val needFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/xgb-fields.txt"))
             .getLines()
             .map { line =>
                 val split = line.split("\t")
@@ -49,23 +49,23 @@ object XGBFeature {
             .toMap
         val halfYearMaxBroadCast = spark.sparkContext.broadcast(halfYearMaxFields)
 
-        val oneSeasonAvgFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/one-season-avg-fields.txt"))
+        val oneMonthAvgFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/one-month-avg-fields.txt"))
             .getLines()
             .map { line =>
                 val split = line.split("\t")
                 split.head.toInt -> split.last.toInt
             }
             .toMap
-        val oneSeasonAvgBroadCast = spark.sparkContext.broadcast(oneSeasonAvgFields)
+        val oneMonthAvgBroadCast = spark.sparkContext.broadcast(oneMonthAvgFields)
 
-        val oneSeasonMaxFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/one-season-max-fields.txt"))
+        val oneMonthMaxFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/one-month-max-fields.txt"))
             .getLines()
             .map { line =>
                 val split = line.split("\t")
                 split.head.toInt -> split.last.toInt
             }
             .toMap
-        val oneSeasonMaxBroadCast = spark.sparkContext.broadcast(oneSeasonMaxFields)
+        val oneMonthMaxBroadCast = spark.sparkContext.broadcast(oneMonthMaxFields)
 
         val minMaxStatistics = MinMaxStatistics.getMinMaxStatistics(spark, args("minMax"))
         val minMaxStatisticsBroadCast = spark.sparkContext.broadcast(minMaxStatistics)
@@ -88,21 +88,23 @@ object XGBFeature {
                 val featureBuilder = new FeatureBuilder
                 var startIndex = 1
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 11)(MergedMethod.avg)
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.avg)
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 11)(MergedMethod.max)
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.max)
 
-//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.avg)
-//
-//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.max)
-//
-//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, halfYearAvgBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
-//
-//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, halfYearMaxBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.max)
-//
-//                startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 0)
-//
-//                startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 6)
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, halfYearAvgBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
+
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, halfYearMaxBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.max)
+
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, oneMonthAvgBroadCast.value, minMaxStatisticsBroadCast.value, 11)(MergedMethod.avg)
+
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, oneMonthMaxBroadCast.value, minMaxStatisticsBroadCast.value, 11)(MergedMethod.max)
+
+                startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 0)
+
+                startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 6)
+
+                startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 11)
 
                 FeatureEncoded(ual.user, startIndex - 1, ual.label + featureBuilder.getFeature())
             }
