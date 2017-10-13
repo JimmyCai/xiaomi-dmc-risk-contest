@@ -91,3 +91,7 @@ lr=0.0025, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0 epochs=1
 
 lr=0.0025, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0 epochs=1 最后一层dropout 0.2
 0.777371
+
+加不同时间段特征
+1.加半年的特征，融合
+[1049]  train-auc:0.960887    AUC:87357
