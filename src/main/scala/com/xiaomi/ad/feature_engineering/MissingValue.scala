@@ -8,11 +8,16 @@ import com.xiaomi.ad.others.UALProcessed
 object MissingValue {
     val TOTAL_FEATURE = 5000//63614
 
-    def encode(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int) = {
+    def encode(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, month: Int) = {
         val categorySeq = Seq(1, 2, 3, 4, 11, 12, 13, 18, 19, 57, 59)
 
         val existIds = ual.actions
-            .values
+            .toSeq
+            .sortBy { case(time, _) =>
+                time.replace("-", "").toInt
+            }
+            .drop(month)
+            .map(_._2)
             .flatMap { ca =>
                 ca
             }
@@ -26,11 +31,16 @@ object MissingValue {
         featureBuilder.addFeature(startIndex, 1, 0, ans)
     }
 
-    def encodeLR(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int) = {
+    def encodeLR(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, month: Int) = {
         val categorySeq = Seq(1, 2, 3, 4, 11, 12, 13, 18, 19, 57, 59)
 
         val existIds = ual.actions
-            .values
+            .toSeq
+            .sortBy { case(time, _) =>
+                time.replace("-", "").toInt
+            }
+            .drop(month)
+            .map(_._2)
             .flatMap { ca =>
                 ca
             }
@@ -42,5 +52,14 @@ object MissingValue {
 
         val ans = TOTAL_FEATURE - existIds.size
         featureBuilder.addOneHotFeature(startIndex, 1, 0, Discretization.minMax(10, 10000, ans))
+    }
+
+    def encodeOneMonth(featureBuilder: FeatureBuilder, ualAction: scala.collection.Map[Int, Double], startIndex: Int) = {
+        val categorySeq = Seq(1, 2, 3, 4, 11, 12, 13, 18, 19, 57, 59)
+
+        val allSize = ualAction
+            .count(a => !categorySeq.contains(a._1))
+
+        featureBuilder.addFeature(startIndex, 1, 0, Discretization.minMax(10, 5000, TOTAL_FEATURE - allSize))
     }
 }

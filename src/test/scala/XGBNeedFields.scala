@@ -202,9 +202,33 @@ object XGBNeedFields {
         bw.close()
     }
 
+    def main8(args: Array[String]): Unit = {
+        val bw = new BufferedWriter(new FileWriter(new File("/home/mi/Desktop/deep-fields.txt")))
+
+        val nonContinueNumFields = Seq(1, 2, 3, 4, 11, 12, 13, 18, 19, 57, 59)
+
+        Source.fromInputStream(XGBNeedFields.getClass.getResourceAsStream("/lr-fields.txt"))
+            .getLines()
+            .filter { line =>
+                val split = line.split("\t")
+                !nonContinueNumFields.contains(split.head.toInt)
+            }
+            .map { line =>
+                val split = line.split("\t")
+                split.head.toInt
+            }
+            .zipWithIndex
+            .foreach { case(id, index) =>
+                bw.write(s"$id\t$index\n")
+            }
+
+        bw.flush()
+        bw.close()
+    }
+
     def main(args: Array[String]): Unit = {
-        val bw1 = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/half-year-avg-fields.txt")))
-        val bw2 = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/half-year-max-fields.txt")))
+        val bw1 = new BufferedWriter(new FileWriter(new File("/home/mi/Desktop/one-season-avg-fields.txt")))
+        val bw2 = new BufferedWriter(new FileWriter(new File("/home/mi/Desktop/one-season-max-fields.txt")))
 
         val tMap = Source.fromInputStream(XGBNeedFields.getClass.getResourceAsStream("/lr-fields.txt"))
             .getLines()
@@ -214,15 +238,16 @@ object XGBNeedFields {
             }
             .toMap
 
-        val features = Source.fromInputStream(XGBNeedFields.getClass.getResourceAsStream("/half-year-feature-score.txt"))
+        val features = Source.fromInputStream(XGBNeedFields.getClass.getResourceAsStream("/one-season-feature-score.txt"))
             .getLines()
             .map { line =>
-                val split = line.split("\t")
+                val split = line.split(",")
                 split.head.toInt
             }
+            .toSeq
+
         features
             .filter(_ <= 63615)
-            .toSeq
             .sorted
             .map(i => tMap(i))
             .zipWithIndex
@@ -232,7 +257,6 @@ object XGBNeedFields {
 
         features
             .filter(i => i > 63615 && i <= 127230)
-            .toSeq
             .sorted
             .map(i => tMap(i - 63615))
             .zipWithIndex

@@ -84,3 +84,10 @@ rf太低0.78，所以去掉了
 rank-ensemble:
 xgb_ans['ovd_rate'] * 0.6 + other_tree_ans['ovd_rate'] * 0.1 + fm_ans['ovd_rate'] * 0.3
 0.873416037305
+
+dnn-result(validate):
+lr=0.0025, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0 epochs=1
+0.772363
+
+lr=0.0025, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0 epochs=1 最后一层dropout 0.2
+0.777371

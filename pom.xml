@@ -35,18 +35,6 @@
             <scope>provided</scope>
             <version>2.1.0-mdh2.1.0.0</version>
         </dependency>
-
-        <dependency>
-            <groupId>ml.dmlc</groupId>
-            <artifactId>xgboost4j</artifactId>
-            <version>0.7</version>
-        </dependency>
-
-        <dependency>
-            <groupId>ml.dmlc</groupId>
-            <artifactId>xgboost4j-spark</artifactId>
-            <version>0.7</version>
-        </dependency>
     </dependencies>
 
     <build>

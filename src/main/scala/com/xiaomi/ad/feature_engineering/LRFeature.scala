@@ -54,43 +54,43 @@ object LRFeature {
         val minMaxStatistics = MinMaxStatistics.getMinMaxStatistics(spark, args("minMax"))
         val minMaxStatisticsBroadCast = spark.sparkContext.broadcast(minMaxStatistics)
 
-        val positiveVector = Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/positive_vector"))
-            .getLines()
-            .map { line =>
-                val split = line.split("\t")
-                split.head.toInt -> split.last.toDouble
-            }
-            .toSeq
-
-        val positiveSum = Math.sqrt(positiveVector.map(k => Math.pow(k._2, 2)).sum)
-        val positiveVectorNormalized = positiveVector
-            .map { case(id, value) =>
-                id -> value/positiveSum
-            }
-            .toMap
-        val positiveVectorBroadCast = spark.sparkContext.broadcast(positiveVectorNormalized)
-
-        val appInstallRate = Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/app_install_rate.txt"))
-            .getLines()
-            .map { line =>
-                val split = line.split("\t")
-                split.head.toInt -> split.last.toInt
-            }
-            .toMap
-        val appInstallRateBroadCast = spark.sparkContext.broadcast(appInstallRate)
-
-        val appOpenTimeRateBroadCast = spark.sparkContext.broadcast(
-            appInstallRate
-                .map { case(id, index) =>
-                    id + 1 -> index
-                }
-        )
-
-        val queryStatRateBroadCast = spark.sparkContext.broadcast(
-            (10131 to 10233)
-                .zipWithIndex
-                .toMap
-        )
+//        val positiveVector = Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/positive_vector"))
+//            .getLines()
+//            .map { line =>
+//                val split = line.split("\t")
+//                split.head.toInt -> split.last.toDouble
+//            }
+//            .toSeq
+//
+//        val positiveSum = Math.sqrt(positiveVector.map(k => Math.pow(k._2, 2)).sum)
+//        val positiveVectorNormalized = positiveVector
+//            .map { case(id, value) =>
+//                id -> value/positiveSum
+//            }
+//            .toMap
+//        val positiveVectorBroadCast = spark.sparkContext.broadcast(positiveVectorNormalized)
+//
+//        val appInstallRate = Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/app_install_rate.txt"))
+//            .getLines()
+//            .map { line =>
+//                val split = line.split("\t")
+//                split.head.toInt -> split.last.toInt
+//            }
+//            .toMap
+//        val appInstallRateBroadCast = spark.sparkContext.broadcast(appInstallRate)
+//
+//        val appOpenTimeRateBroadCast = spark.sparkContext.broadcast(
+//            appInstallRate
+//                .map { case(id, index) =>
+//                    id + 1 -> index
+//                }
+//        )
+//
+//        val queryStatRateBroadCast = spark.sparkContext.broadcast(
+//            (10131 to 10233)
+//                .zipWithIndex
+//                .toMap
+//        )
 
         val tDF = spark.read.parquet(args("input"))
             .repartition(100)
@@ -101,19 +101,23 @@ object LRFeature {
 
                 startIndex = BasicProfile.encode(featureBuilder, ual, startIndex)
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.avg)
+
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
 
                 startIndex = encodeCombineLogFeatures(featureBuilder, ual, startIndex, combineLogNeedFieldsBroadCast.value, combineLogFieldsBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
 
-                startIndex = MissingValue.encodeLR(featureBuilder, ual, startIndex)
+                startIndex = MissingValue.encodeLR(featureBuilder, ual, startIndex, 0)
 
-                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, appInstallRateBroadCast.value)(MergedMethod.avg)
+                startIndex = MissingValue.encodeLR(featureBuilder, ual, startIndex, 12)
 
-                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, appOpenTimeRateBroadCast.value)(MergedMethod.avg)
-
-                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, queryStatRateBroadCast.value)(MergedMethod.avg)
-
-                startIndex = encodePositiveCosine(featureBuilder, ual, startIndex, positiveVectorBroadCast.value)(MergedMethod.avg)
+//                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, appInstallRateBroadCast.value)(MergedMethod.avg)
+//
+//                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, appOpenTimeRateBroadCast.value)(MergedMethod.avg)
+//
+//                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, queryStatRateBroadCast.value)(MergedMethod.avg)
+//
+//                startIndex = encodePositiveCosine(featureBuilder, ual, startIndex, positiveVectorBroadCast.value)(MergedMethod.avg)
 
                 FeatureEncoded(ual.user, startIndex - 1, ual.label + featureBuilder.getFeature())
             }
@@ -132,9 +136,14 @@ object LRFeature {
         spark.stop()
     }
 
-    def encodeFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, lrFields: Map[Int, Int], minMaxMap: Map[Int, MinMax])(implicit mergedMethod: Seq[Double] => Double) = {
+    def encodeFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, lrFields: Map[Int, Int], minMaxMap: Map[Int, MinMax], month: Int)(implicit mergedMethod: Seq[Double] => Double) = {
         val actionSeq = ual.actions
-            .values
+            .toSeq
+            .sortBy { case(time, _) =>
+                time.replace("-", "").toInt
+            }
+            .drop(month)
+            .map(_._2)
             .filter(_.nonEmpty)
             .flatMap { curAction =>
                 curAction
@@ -155,7 +164,7 @@ object LRFeature {
                 featureBuilder.addOneHotFeature(startIndex, 0, lrFields(index), Discretization.minMax(minMaxMap(index).min, minMaxMap(index).max, value))
             }
 
-        startIndex + lrFields.size * 10
+        startIndex + lrFields.size * 5
     }
 
     def encodeCombineFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, lrFields: Set[Int], combineFields: Map[String, Int], minMaxMap: Map[Int, MinMax])(implicit mergedMethod: Seq[Double] => Double) = {
@@ -235,7 +244,7 @@ object LRFeature {
                 featureBuilder.addOneHotFeature(startIndex, 0, combineLogFields(key), if(value == 0.0) 0.0 else Math.log(value))
             }
 
-        startIndex + combineLogFields.size * 10
+        startIndex + combineLogFields.size * 5
     }
 
     def encodePositiveCosine(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, vectorMap: Map[Int, Double])(implicit mergedMethod: Seq[Double] => Double) = {
@@ -299,6 +308,6 @@ object LRFeature {
                 featureBuilder.addOneHotFeature(startIndex, 0, rateMap(id), value)
             }
 
-        startIndex + rateMap.size * 10
+        startIndex + rateMap.size * 5
     }
 }
