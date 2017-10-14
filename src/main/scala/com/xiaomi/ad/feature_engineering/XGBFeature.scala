@@ -67,6 +67,52 @@ object XGBFeature {
             .toMap
         val oneMonthMaxBroadCast = spark.sparkContext.broadcast(oneMonthMaxFields)
 
+        val queryDetailRateBroadCast = spark.sparkContext.broadcast(
+            (131 to 10130)
+                .zipWithIndex
+                .toMap
+        )
+
+        val queryStatRateBroadCast = spark.sparkContext.broadcast(
+            (10131 to 10233)
+                .zipWithIndex
+                .toMap
+        )
+
+        val appUsageDurationRateBroadCast = spark.sparkContext.broadcast(
+            (10234 to 40180)
+                .zipWithIndex
+                .toMap
+        )
+
+        val appUsageDayRateBroadCast = spark.sparkContext.broadcast(
+            (40181 to 68114)
+                .zipWithIndex
+                .toMap
+        )
+
+        val appUsageTimeRateBroadCast = spark.sparkContext.broadcast(
+            (68115 to 96048)
+                .zipWithIndex
+                .toMap
+        )
+
+        val appInstallRate = Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/app_install_rate.txt"))
+            .getLines()
+            .map { line =>
+                val split = line.split("\t")
+                split.head.toInt -> split.last.toInt
+            }
+            .toMap
+        val appStatInstallRateBroadCast = spark.sparkContext.broadcast(appInstallRate)
+
+        val appStatOpenTimeRateBroadCast = spark.sparkContext.broadcast(
+            appInstallRate
+                .map { case(id, index) =>
+                    id + 1 -> index
+                }
+        )
+
         val minMaxStatistics = MinMaxStatistics.getMinMaxStatistics(spark, args("minMax"))
         val minMaxStatisticsBroadCast = spark.sparkContext.broadcast(minMaxStatistics)
 
@@ -88,23 +134,31 @@ object XGBFeature {
                 val featureBuilder = new FeatureBuilder
                 var startIndex = 1
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.avg)
+                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, queryDetailRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.max)
+                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, queryStatRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, halfYearAvgBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
+                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageDurationRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, halfYearMaxBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.max)
+                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageDayRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, oneMonthAvgBroadCast.value, minMaxStatisticsBroadCast.value, 11)(MergedMethod.avg)
+                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageTimeRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, oneMonthMaxBroadCast.value, minMaxStatisticsBroadCast.value, 11)(MergedMethod.max)
+                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appStatInstallRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
 
-                startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 0)
+                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appStatOpenTimeRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
 
-                startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 6)
-
-                startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 11)
+//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.avg)
+//
+//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.max)
+//
+//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, halfYearAvgBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
+//
+//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, halfYearMaxBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.max)
+//
+//                startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 0)
+//
+//                startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 6)
 
                 FeatureEncoded(ual.user, startIndex - 1, ual.label + featureBuilder.getFeature())
             }
