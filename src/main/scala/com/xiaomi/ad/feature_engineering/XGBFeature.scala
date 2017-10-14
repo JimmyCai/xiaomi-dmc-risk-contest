@@ -60,13 +60,7 @@ object XGBFeature {
         )
 
         val queryDetailFieldBroadCast = spark.sparkContext.broadcast(
-            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/query-detail-rate-fields.txt"))
-                .getLines()
-                .map { line =>
-                    val split = line.split("\t")
-                    split.head.toInt
-                }
-                .toSet
+            (131 to 10130).toSet
         )
 
         val queryStatRateBroadCast = spark.sparkContext.broadcast(
@@ -80,13 +74,7 @@ object XGBFeature {
         )
 
         val queryStatFieldBroadCast = spark.sparkContext.broadcast(
-            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/query-stat-rate-fields.txt"))
-                .getLines()
-                .map { line =>
-                    val split = line.split("\t")
-                    split.head.toInt
-                }
-                .toSet
+            (10131 to 10233).toSet
         )
 
         val appUsageDurationRateBroadCast = spark.sparkContext.broadcast(
@@ -100,13 +88,7 @@ object XGBFeature {
         )
 
         val appUsageDurationFieldsBroadCast = spark.sparkContext.broadcast(
-            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/app-usage-duration-rate-fields.txt"))
-                .getLines()
-                .map { line =>
-                    val split = line.split("\t")
-                    split.head.toInt
-                }
-                .toSet
+            (10234 to 40180).toSet
         )
 
         val appUsageDayRateBroadCast = spark.sparkContext.broadcast(
@@ -120,13 +102,7 @@ object XGBFeature {
         )
 
         val appUsageDayFieldsBroadCast = spark.sparkContext.broadcast(
-            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/app-usage-day-rate-fields.txt"))
-                .getLines()
-                .map { line =>
-                    val split = line.split("\t")
-                    split.head.toInt
-                }
-                .toSet
+            (40181 to 68114).toSet
         )
 
         val appUsageTimeRateBroadCast = spark.sparkContext.broadcast(
@@ -140,7 +116,21 @@ object XGBFeature {
         )
 
         val appUsageTimeFieldsBroadCast = spark.sparkContext.broadcast(
-            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/app-usage-time-rate-fields.txt"))
+            (68115 to 96048).toSet
+        )
+
+        val appStatInstallRateBroadCast = spark.sparkContext.broadcast(
+            Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/ratefeature/app-install-rate-fields.txt"))
+                .getLines()
+                .map { line =>
+                    val split = line.split("\t")
+                    split.head.toInt -> split.last.toInt
+                }
+                .toMap
+        )
+
+        val appStatInstallFieldsBroadCast = spark.sparkContext.broadcast(
+            Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/ratefeature/app-install-rate-fields.txt"))
                 .getLines()
                 .map { line =>
                     val split = line.split("\t")
@@ -148,17 +138,6 @@ object XGBFeature {
                 }
                 .toSet
         )
-
-        val appInstallRate = Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/ratefeature/app-install-rate-fields.txt"))
-            .getLines()
-            .map { line =>
-                val split = line.split("\t")
-                split.head.toInt -> split.last.toInt
-            }
-            .toMap
-        val appStatInstallRateBroadCast = spark.sparkContext.broadcast(appInstallRate)
-
-        val appStatInstallFieldsBroadCast = spark.sparkContext.broadcast(appInstallRate.keys.toSet)
 
         val appStatOpenTimeRateBroadCast = spark.sparkContext.broadcast(
             Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/ratefeature/app-open-time-rate-fields.txt"))
