@@ -268,7 +268,7 @@ object XGBFeature {
             .flatMap { curAction =>
                 curAction
                     .filter { case(index, _) =>
-                        needFields.contains(index)
+                        needFields.contains(index) && minMaxMap.contains(index)
                     }
             }
             .groupBy(_._1)
