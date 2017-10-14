@@ -49,24 +49,6 @@ object XGBFeature {
             .toMap
         val halfYearMaxBroadCast = spark.sparkContext.broadcast(halfYearMaxFields)
 
-        val oneMonthAvgFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/one-month-avg-fields.txt"))
-            .getLines()
-            .map { line =>
-                val split = line.split("\t")
-                split.head.toInt -> split.last.toInt
-            }
-            .toMap
-        val oneMonthAvgBroadCast = spark.sparkContext.broadcast(oneMonthAvgFields)
-
-        val oneMonthMaxFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/one-month-max-fields.txt"))
-            .getLines()
-            .map { line =>
-                val split = line.split("\t")
-                split.head.toInt -> split.last.toInt
-            }
-            .toMap
-        val oneMonthMaxBroadCast = spark.sparkContext.broadcast(oneMonthMaxFields)
-
         val queryDetailRateBroadCast = spark.sparkContext.broadcast(
             Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/query-detail-rate-fields.txt"))
                 .getLines()
@@ -75,6 +57,16 @@ object XGBFeature {
                     split.head.toInt -> split.last.toInt
                 }
                 .toMap
+        )
+
+        val queryDetailFieldBroadCast = spark.sparkContext.broadcast(
+            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/query-detail-rate-fields.txt"))
+                .getLines()
+                .map { line =>
+                    val split = line.split("\t")
+                    split.head.toInt
+                }
+                .toSet
         )
 
         val queryStatRateBroadCast = spark.sparkContext.broadcast(
@@ -87,6 +79,16 @@ object XGBFeature {
                 .toMap
         )
 
+        val queryStatFieldBroadCast = spark.sparkContext.broadcast(
+            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/query-stat-rate-fields.txt"))
+                .getLines()
+                .map { line =>
+                    val split = line.split("\t")
+                    split.head.toInt
+                }
+                .toSet
+        )
+
         val appUsageDurationRateBroadCast = spark.sparkContext.broadcast(
             Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/app-usage-duration-rate-fields.txt"))
                 .getLines()
@@ -95,6 +97,16 @@ object XGBFeature {
                     split.head.toInt -> split.last.toInt
                 }
                 .toMap
+        )
+
+        val appUsageDurationFieldsBroadCast = spark.sparkContext.broadcast(
+            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/app-usage-duration-rate-fields.txt"))
+                .getLines()
+                .map { line =>
+                    val split = line.split("\t")
+                    split.head.toInt
+                }
+                .toSet
         )
 
         val appUsageDayRateBroadCast = spark.sparkContext.broadcast(
@@ -107,6 +119,16 @@ object XGBFeature {
                 .toMap
         )
 
+        val appUsageDayFieldsBroadCast = spark.sparkContext.broadcast(
+            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/app-usage-day-rate-fields.txt"))
+                .getLines()
+                .map { line =>
+                    val split = line.split("\t")
+                    split.head.toInt
+                }
+                .toSet
+        )
+
         val appUsageTimeRateBroadCast = spark.sparkContext.broadcast(
             Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/app-usage-time-rate-fields.txt"))
                 .getLines()
@@ -115,6 +137,16 @@ object XGBFeature {
                     split.head.toInt -> split.last.toInt
                 }
                 .toMap
+        )
+
+        val appUsageTimeFieldsBroadCast = spark.sparkContext.broadcast(
+            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/app-usage-time-rate-fields.txt"))
+                .getLines()
+                .map { line =>
+                    val split = line.split("\t")
+                    split.head.toInt
+                }
+                .toSet
         )
 
         val appInstallRate = Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/ratefeature/app-install-rate-fields.txt"))
@@ -126,6 +158,8 @@ object XGBFeature {
             .toMap
         val appStatInstallRateBroadCast = spark.sparkContext.broadcast(appInstallRate)
 
+        val appStatInstallFieldsBroadCast = spark.sparkContext.broadcast(appInstallRate.keys.toSet)
+
         val appStatOpenTimeRateBroadCast = spark.sparkContext.broadcast(
             Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/ratefeature/app-open-time-rate-fields.txt"))
                 .getLines()
@@ -134,6 +168,16 @@ object XGBFeature {
                     split.head.toInt -> split.last.toInt
                 }
                 .toMap
+        )
+
+        val appStatOpenTimeFieldsBroadCast = spark.sparkContext.broadcast(
+            Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/ratefeature/app-open-time-rate-fields.txt"))
+                .getLines()
+                .map { line =>
+                    val split = line.split("\t")
+                    split.head.toInt
+                }
+                .toSet
         )
 
         val minMaxStatistics = MinMaxStatistics.getMinMaxStatistics(spark, args("minMax"))
@@ -157,20 +201,6 @@ object XGBFeature {
                 val featureBuilder = new FeatureBuilder
                 var startIndex = 1
 
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, queryDetailRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
-
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, queryStatRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
-
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageDurationRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
-
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageDayRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
-
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageTimeRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
-
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appStatInstallRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
-
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appStatOpenTimeRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
-
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.avg)
 
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.max)
@@ -178,6 +208,22 @@ object XGBFeature {
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, halfYearAvgBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
 
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, halfYearMaxBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.max)
+
+                //start rate feature
+                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, queryDetailFieldBroadCast.value, queryDetailRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
+
+                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, queryStatFieldBroadCast.value, queryStatRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
+
+                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageDurationFieldsBroadCast.value, appUsageDurationRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
+
+                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageDayFieldsBroadCast.value, appUsageDayRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
+
+                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageTimeFieldsBroadCast.value, appUsageTimeRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
+
+                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appStatInstallFieldsBroadCast.value, appStatInstallRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
+
+                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appStatOpenTimeFieldsBroadCast.value, appStatOpenTimeRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
+                //end rate feature
 
                 startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 0)
 
@@ -236,14 +282,14 @@ object XGBFeature {
         startIndex + xgbFields.size
     }
 
-    def encodeRateFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, rateMap: Map[Int, Int], minMaxMap: Map[Int, MinMax])(implicit mergedMethod: Seq[Double] => Double) = {
+    def encodeRateFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, needFields: Set[Int], rateMap: Map[Int, Int], minMaxMap: Map[Int, MinMax])(implicit mergedMethod: Seq[Double] => Double) = {
         val actionMap = ual.actions
             .values
             .filter(_.nonEmpty)
             .flatMap { curAction =>
                 curAction
                     .filter { case(index, _) =>
-                        rateMap.contains(index)
+                        needFields.contains(index)
                     }
             }
             .groupBy(_._1)
@@ -258,6 +304,9 @@ object XGBFeature {
         val sum = actionMap.values.sum
 
         actionMap
+            .filter { case(id, value) =>
+                rateMap.contains(id)
+            }
             .map { case(id, value) =>
                 id -> value / sum
             }
