@@ -226,7 +226,7 @@ object XGBNeedFields {
         bw.close()
     }
 
-    def main(args: Array[String]): Unit = {
+    def main9(args: Array[String]): Unit = {
         val bw1 = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/one-month-avg-fields.txt")))
         val bw2 = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/one-month-max-fields.txt")))
 
@@ -268,5 +268,156 @@ object XGBNeedFields {
         bw2.flush()
         bw1.close()
         bw2.close()
+    }
+
+    def main10(args: Array[String]): Unit = {
+        val bw = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/rate-fields.txt")))
+
+        val appInstall = Source.fromInputStream(XGBNeedFields.getClass.getResourceAsStream("/app_install_rate.txt"))
+            .getLines()
+            .map{ line =>
+                val split = line.split("\t")
+                split.head.toInt
+            }
+            .toSeq
+
+        val appOpenTime = appInstall
+            .map(i => i + 1)
+
+        val idMap = ((131 to 96048) ++ appInstall ++ appOpenTime)
+            .zipWithIndex
+            .map { case(id, index) =>
+                (index + 1) -> id
+            }
+            .toMap
+
+        Source.fromInputStream(XGBNeedFields.getClass.getResourceAsStream("/rate-feature-score.txt"))
+            .getLines()
+            .map { line =>
+                val split = line.split(",")
+                idMap(split.head.toInt)
+            }
+            .toSeq
+            .sorted
+            .zipWithIndex
+            .foreach { case(id, index) =>
+                bw.write(s"$id\t$index\n")
+            }
+
+        bw.flush()
+        bw.close()
+    }
+
+    def main(args: Array[String]): Unit = {
+        val allFields = Source.fromFile("/Users/limingcai/Desktop/rate-fields.txt")
+            .getLines()
+            .map { line =>
+                val split = line.split("\t")
+                split.head.toInt
+            }
+            .toSeq
+
+        val queryDetailBW = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/query-detail-rate-fields.txt")))
+        (131 to 10130)
+            .filter { i =>
+                allFields.contains(i)
+            }
+            .zipWithIndex
+            .foreach { case(id, index) =>
+                queryDetailBW.write(s"$id\t$index\n")
+            }
+
+        queryDetailBW.flush()
+        queryDetailBW.close()
+
+        val queryStatBW = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/query-stat-rate-fields.txt")))
+        (10131 to 10233)
+            .filter { i =>
+                allFields.contains(i)
+            }
+            .zipWithIndex
+            .foreach { case(id, index) =>
+                queryStatBW.write(s"$id\t$index\n")
+            }
+
+        queryStatBW.flush()
+        queryStatBW.close()
+
+        val appUsageDurationBW = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/app-usage-duration-rate-fields.txt")))
+        (10234 to 40180)
+            .filter { i =>
+                allFields.contains(i)
+            }
+            .zipWithIndex
+            .foreach { case(id, index) =>
+                appUsageDurationBW.write(s"$id\t$index\n")
+            }
+
+        appUsageDurationBW.flush()
+        appUsageDurationBW.close()
+
+        val appUsageDayBW = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/app-usage-day-rate-fields.txt")))
+        (40181 to 68114)
+            .filter { i =>
+                allFields.contains(i)
+            }
+            .zipWithIndex
+            .foreach { case(id, index) =>
+                appUsageDayBW.write(s"$id\t$index\n")
+            }
+
+        appUsageDayBW.flush()
+        appUsageDayBW.close()
+
+        val appUsageTimeBW = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/app-usage-time-rate-fields.txt")))
+        (68115 to 96048)
+            .filter { i =>
+                allFields.contains(i)
+            }
+            .zipWithIndex
+            .foreach { case(id, index) =>
+                appUsageTimeBW.write(s"$id\t$index\n")
+            }
+
+        appUsageTimeBW.flush()
+        appUsageTimeBW.close()
+
+        val appInstallBW = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/app-install-rate-fields.txt")))
+
+        Source.fromInputStream(XGBNeedFields.getClass.getResourceAsStream("/app_install_rate.txt"))
+            .getLines()
+            .map{ line =>
+                val split = line.split("\t")
+                split.head.toInt
+            }
+            .toSeq
+            .filter { i =>
+                allFields.contains(i)
+            }
+            .zipWithIndex
+            .foreach { case(id, index) =>
+                appInstallBW.write(s"$id\t$index\n")
+            }
+        appInstallBW.flush()
+        appInstallBW.close()
+
+        val appOpenTimeBW = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/app-open-time-rate-fields.txt")))
+
+        Source.fromInputStream(XGBNeedFields.getClass.getResourceAsStream("/app_install_rate.txt"))
+            .getLines()
+            .map{ line =>
+                val split = line.split("\t")
+                split.head.toInt + 1
+            }
+            .toSeq
+            .filter { i =>
+                allFields.contains(i)
+            }
+            .zipWithIndex
+            .foreach { case(id, index) =>
+                appOpenTimeBW.write(s"$id\t$index\n")
+            }
+        appOpenTimeBW.flush()
+        appOpenTimeBW.close()
     }
 }

@@ -68,36 +68,56 @@ object XGBFeature {
         val oneMonthMaxBroadCast = spark.sparkContext.broadcast(oneMonthMaxFields)
 
         val queryDetailRateBroadCast = spark.sparkContext.broadcast(
-            (131 to 10130)
-                .zipWithIndex
+            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/query-detail-rate-fields.txt"))
+                .getLines()
+                .map { line =>
+                    val split = line.split("\t")
+                    split.head.toInt -> split.last.toInt
+                }
                 .toMap
         )
 
         val queryStatRateBroadCast = spark.sparkContext.broadcast(
-            (10131 to 10233)
-                .zipWithIndex
+            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/query-stat-rate-fields.txt"))
+                .getLines()
+                .map { line =>
+                    val split = line.split("\t")
+                    split.head.toInt -> split.last.toInt
+                }
                 .toMap
         )
 
         val appUsageDurationRateBroadCast = spark.sparkContext.broadcast(
-            (10234 to 40180)
-                .zipWithIndex
+            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/app-usage-duration-rate-fields.txt"))
+                .getLines()
+                .map { line =>
+                    val split = line.split("\t")
+                    split.head.toInt -> split.last.toInt
+                }
                 .toMap
         )
 
         val appUsageDayRateBroadCast = spark.sparkContext.broadcast(
-            (40181 to 68114)
-                .zipWithIndex
+            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/app-usage-day-rate-fields.txt"))
+                .getLines()
+                .map { line =>
+                    val split = line.split("\t")
+                    split.head.toInt -> split.last.toInt
+                }
                 .toMap
         )
 
         val appUsageTimeRateBroadCast = spark.sparkContext.broadcast(
-            (68115 to 96048)
-                .zipWithIndex
+            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/app-usage-time-rate-fields.txt"))
+                .getLines()
+                .map { line =>
+                    val split = line.split("\t")
+                    split.head.toInt -> split.last.toInt
+                }
                 .toMap
         )
 
-        val appInstallRate = Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/app_install_rate.txt"))
+        val appInstallRate = Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/ratefeature/app-install-rate-fields.txt"))
             .getLines()
             .map { line =>
                 val split = line.split("\t")
@@ -107,10 +127,13 @@ object XGBFeature {
         val appStatInstallRateBroadCast = spark.sparkContext.broadcast(appInstallRate)
 
         val appStatOpenTimeRateBroadCast = spark.sparkContext.broadcast(
-            appInstallRate
-                .map { case(id, index) =>
-                    id + 1 -> index
+            Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/ratefeature/app-open-time-rate-fields.txt"))
+                .getLines()
+                .map { line =>
+                    val split = line.split("\t")
+                    split.head.toInt -> split.last.toInt
                 }
+                .toMap
         )
 
         val minMaxStatistics = MinMaxStatistics.getMinMaxStatistics(spark, args("minMax"))
@@ -148,17 +171,17 @@ object XGBFeature {
 
                 startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appStatOpenTimeRateBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
 
-//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.avg)
-//
-//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.max)
-//
-//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, halfYearAvgBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
-//
-//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, halfYearMaxBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.max)
-//
-//                startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 0)
-//
-//                startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 6)
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.avg)
+
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.max)
+
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, halfYearAvgBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
+
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, halfYearMaxBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.max)
+
+                startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 0)
+
+                startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 6)
 
                 FeatureEncoded(ual.user, startIndex - 1, ual.label + featureBuilder.getFeature())
             }
