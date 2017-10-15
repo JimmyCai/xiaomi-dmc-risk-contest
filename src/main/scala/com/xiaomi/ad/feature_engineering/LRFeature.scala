@@ -115,13 +115,13 @@ object LRFeature {
 
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.avg)
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
+//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
 
                 startIndex = encodeCombineLogFeatures(featureBuilder, ual, startIndex, combineLogNeedFieldsBroadCast.value, combineLogFieldsBroadCast.value, minMaxStatisticsBroadCast.value)(MergedMethod.avg)
 
                 startIndex = MissingValue.encodeLR(featureBuilder, ual, startIndex, 0)
 
-                startIndex = MissingValue.encodeLR(featureBuilder, ual, startIndex, 6)
+//                startIndex = MissingValue.encodeLR(featureBuilder, ual, startIndex, 6)
 
                 startIndex = encodeRateFeature(featureBuilder, ual, startIndex, queryDetailRateBroadCast.value)(MergedMethod.avg)
 
