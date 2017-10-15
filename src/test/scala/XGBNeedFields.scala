@@ -308,7 +308,7 @@ object XGBNeedFields {
         bw.close()
     }
 
-    def main(args: Array[String]): Unit = {
+    def main11(args: Array[String]): Unit = {
         val allFields = Source.fromFile("/Users/limingcai/Desktop/rate-fields.txt")
             .getLines()
             .map { line =>
@@ -419,5 +419,29 @@ object XGBNeedFields {
             }
         appOpenTimeBW.flush()
         appOpenTimeBW.close()
+    }
+
+    def main(args: Array[String]): Unit = {
+        val bw = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/new-lr-fields.txt")))
+
+        val nonContinueNumFields = Seq(1, 2, 3, 4, 11, 12, 13, 18, 19, 57, 59)
+
+        Source.fromInputStream(XGBNeedFields.getClass.getResourceAsStream("/lr-fields.txt"))
+            .getLines()
+            .map{ line =>
+                val split = line.split("\t")
+                split.head.toInt
+            }
+            .toSeq
+            .filter { i =>
+                !nonContinueNumFields.contains(i)
+            }
+            .zipWithIndex
+            .foreach { case(id, index) =>
+                bw.write(s"$id\t$index\n")
+            }
+
+        bw.flush()
+        bw.close()
     }
 }
