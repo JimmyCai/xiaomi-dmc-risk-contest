@@ -101,3 +101,11 @@ lr=0.0025, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0 epochs=1 最后一
 
 2.加一个月的特征，融合
 [1000]  train-auc:0.961411    AUC:0.86858
+
+xgb用87397，fm用85940，lightGBN用86383，融合得到87587
+
+xgb用87397，fm用85940+rateFeature，lightGBN用86383，融合得到87500
+
+xgb用87397，fm用85940+halfyear，lightGBN用86383，融合得到79104
+
+xgb用87397，fm用85940+halfyear+rateFeature，lightGBN用86383，融合得到
