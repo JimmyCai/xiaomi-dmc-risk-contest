@@ -109,3 +109,13 @@ xgb用87397，fm用85940+rateFeature，lightGBN用86383，融合得到87500
 xgb用87397，fm用85940+halfyear，lightGBN用86383，融合得到79104
 
 xgb用87397，fm用85940+halfyear+rateFeature，lightGBN用86383，融合得到
+
+lightGBM+halfyear+rate:
+
+
+lightGBM(GBDT)
+full-year feature:0.832902
+three-season feature:0.831306
+half-year feature:0.832316
+one-season feature:0.824342
+以上几个通过LR(C=0.1,penalty='l1')融合得到:0.8402137

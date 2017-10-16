@@ -121,6 +121,24 @@ object FeatureTmp {
                 }
                 .toSet
         )
+
+        val tsAvgFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ts-avg-fields.txt"))
+            .getLines()
+            .map { line =>
+                val split = line.split("\t")
+                split.head.toInt -> split.last.toInt
+            }
+            .toMap
+        val tsAvgBroadCast = spark.sparkContext.broadcast(tsAvgFields)
+
+        val tsMaxFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ts-max-fields.txt"))
+            .getLines()
+            .map { line =>
+                val split = line.split("\t")
+                split.head.toInt -> split.last.toInt
+            }
+            .toMap
+        val tsMaxBroadCast = spark.sparkContext.broadcast(tsMaxFields)
     }
 
 

@@ -421,7 +421,7 @@ object XGBNeedFields {
         appOpenTimeBW.close()
     }
 
-    def main(args: Array[String]): Unit = {
+    def main12(args: Array[String]): Unit = {
         val bw = new BufferedWriter(new FileWriter(new File("/Users/limingcai/Desktop/new-lr-fields.txt")))
 
         val nonContinueNumFields = Seq(1, 2, 3, 4, 11, 12, 13, 18, 19, 57, 59)
@@ -443,5 +443,49 @@ object XGBNeedFields {
 
         bw.flush()
         bw.close()
+    }
+
+    def main(args: Array[String]): Unit = {
+        val bw1 = new BufferedWriter(new FileWriter(new File("/home/mi/Desktop/ts-avg-fields.txt")))
+        val bw2 = new BufferedWriter(new FileWriter(new File("/home/mi/Desktop/ts-max-fields.txt")))
+
+        val tMap = Source.fromInputStream(XGBNeedFields.getClass.getResourceAsStream("/new-lr-fields.txt"))
+            .getLines()
+            .map { line =>
+                val split = line.split("\t")
+                (split.last.toInt + 1) -> split.head.toInt
+            }
+            .toMap
+
+        val features = Source.fromInputStream(XGBNeedFields.getClass.getResourceAsStream("/ts-feature-score.txt"))
+            .getLines()
+            .map { line =>
+                val split = line.split(",")
+                split.head.toInt
+            }
+            .toSeq
+
+        features
+            .filter(_ <= 63604)
+            .sorted
+            .map(i => tMap(i))
+            .zipWithIndex
+            .foreach { case(id, index) =>
+                bw1.write(s"$id\t$index\n")
+            }
+
+        features
+            .filter(i => i > 63604)
+            .sorted
+            .map(i => tMap(i - 63604))
+            .zipWithIndex
+            .foreach { case(id, index) =>
+                bw2.write(s"$id\t$index\n")
+            }
+
+        bw1.flush()
+        bw2.flush()
+        bw1.close()
+        bw2.close()
     }
 }
