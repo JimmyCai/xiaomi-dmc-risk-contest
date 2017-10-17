@@ -116,7 +116,7 @@ one-season feature:0.824342
 以上几个通过LR(C=0.1,penalty='l1')融合得到:0.8402137
 线上AUC：0.876266
 简单融合(都取0.25)线上AUC：0.87650
-去掉oneSeason,full-year(0.3)+three-season(0.3)+half-year(0.4):
+去掉oneSeason,full-year(0.3)+three-season(0.3)+half-year(0.4):0.87738
 
 xgb用87397，fm用85940+halfyear+rateFeature，lightGBN用gbdt简单融合87650，（0.3+0.5+0.2）融合得到0.88070
 
@@ -135,6 +135,6 @@ half-year+half-year-rate+com-log+max-change-xgb-select: 0.7823275
 
 
 TODO:
-check test xgb_feature_with_hy_rate_maxchange
-check validate lightGBM hy_ratenew
-train test fm hy_rate_maxchange
+check validate lightGBM hy_ratenew：0.828828
+
+xgb用87397，fm用half-year+half-year-rate+com-log+max-change-xgb-select，lightGBN用gbdt简单融合87738，（0.3+0.5+0.2）融合得到0.88133

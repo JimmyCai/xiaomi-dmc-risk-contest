@@ -57,8 +57,6 @@ object XGBFeature extends TreeFeature{
         val hyAvgFieldsBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/half-year-avg-fields.txt")
         val hyMaxFieldsBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/half-year-max-fields.txt")
 
-        val maxChangeFieldsBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/max-change-fields.txt")
-
         val minMaxStatistics = MinMaxStatistics.getMinMaxStatistics(spark, args("minMax"))
         val minMaxStatisticsBroadCast = spark.sparkContext.broadcast(minMaxStatistics)
 
@@ -93,8 +91,6 @@ object XGBFeature extends TreeFeature{
                 startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageTimeFieldsBroadCast.value, appUsageTimeRateBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.avg)
                 startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appStatInstallFieldsBroadCast.value, appStatInstallRateBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.avg)
                 startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appStatOpenTimeFieldsBroadCast.value, appStatOpenTimeRateBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.avg)
-
-                startIndex = encodeMaxChangeFeature(featureBuilder, ual, startIndex, maxChangeFieldsBroadCast.value, 6)
 
                 startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 0)
 

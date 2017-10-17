@@ -200,23 +200,23 @@ object LightGBMFeature extends TreeFeature {
         //rate feature start
         val queryDetailRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/query-detail-rate-fields.txt")
 
-        val queryDetailFieldBroadCast = FeatureEncodingTools.getBroadCastFields(spark, "/ratefeature/query-detail-rate-fields.txt")
+        val queryDetailFieldBroadCast = FeatureEncodingTools.getBroadCastFields(spark, 131, 10130)
 
         val queryStatRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/query-stat-rate-fields.txt")
 
-        val queryStatFieldBroadCast = FeatureEncodingTools.getBroadCastFields(spark, "/ratefeature/query-stat-rate-fields.txt")
+        val queryStatFieldBroadCast = FeatureEncodingTools.getBroadCastFields(spark, 10131, 10233)
 
         val appUsageDurationRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/app-usage-duration-rate-fields.txt")
 
-        val appUsageDurationFieldsBroadCast = FeatureEncodingTools.getBroadCastFields(spark, "/ratefeature/app-usage-duration-rate-fields.txt")
+        val appUsageDurationFieldsBroadCast = FeatureEncodingTools.getBroadCastFields(spark, 10234, 40180)
 
         val appUsageDayRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/app-usage-day-rate-fields.txt")
 
-        val appUsageDayFieldsBroadCast = FeatureEncodingTools.getBroadCastFields(spark, "/ratefeature/app-usage-day-rate-fields.txt")
+        val appUsageDayFieldsBroadCast = FeatureEncodingTools.getBroadCastFields(spark, 40181, 68114)
 
         val appUsageTimeRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/app-usage-time-rate-fields.txt")
 
-        val appUsageTimeFieldsBroadCast = FeatureEncodingTools.getBroadCastFields(spark, "/ratefeature/app-usage-time-rate-fields.txt")
+        val appUsageTimeFieldsBroadCast = FeatureEncodingTools.getBroadCastFields(spark, 68115, 96048)
 
         val appStatInstallRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/app-install-rate-fields.txt")
 
