@@ -155,7 +155,7 @@ class OneHotFeature {
             .flatMap { curAction =>
                 curAction
                     .filter { case(index, _) =>
-                        rateMap.contains(index)
+                        rateMap.contains(index) && minMaxMap.contains(index)
                     }
             }
             .groupBy(_._1)
