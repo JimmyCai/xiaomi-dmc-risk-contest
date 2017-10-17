@@ -95,6 +95,7 @@ object LRFeature extends OneHotFeature {
                 startIndex = BasicProfile.encode(featureBuilder, ual, startIndex)
 
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.max)
 
                 startIndex = encodeRateFeature(featureBuilder, ual, startIndex, queryDetailRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
                 startIndex = encodeRateFeature(featureBuilder, ual, startIndex, queryStatRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
