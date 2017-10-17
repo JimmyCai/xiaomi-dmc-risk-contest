@@ -45,7 +45,7 @@ object WDFeature {
             .toMap
         val deepNeedFieldsBroadCast = spark.sparkContext.broadcast(deepNeedFields)
 
-        val combineLogFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-log-need-fields.txt"))
+        val combineLogFields = Source.fromInputStream(LightGBMFeature.getClass.getResourceAsStream("/combine-log-need-fields.txt"))
             .getLines()
             .map { line =>
                 val split = line.split("\t")
@@ -54,7 +54,7 @@ object WDFeature {
             .toMap
         val combineLogFieldsBroadCast = spark.sparkContext.broadcast(combineLogFields)
 
-        val combineLogNeedFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/combine-log-need-fields.txt"))
+        val combineLogNeedFields = Source.fromInputStream(LightGBMFeature.getClass.getResourceAsStream("/combine-log-need-fields.txt"))
             .getLines()
             .flatMap { line =>
                 val split = line.split("\t")

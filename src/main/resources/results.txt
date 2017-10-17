@@ -119,3 +119,22 @@ one-season feature:0.824342
 去掉oneSeason,full-year(0.3)+three-season(0.3)+half-year(0.4):
 
 xgb用87397，fm用85940+halfyear+rateFeature，lightGBN用gbdt简单融合87650，（0.3+0.5+0.2）融合得到0.88070
+
+
+FM result:
+full-year+half-year+half-year-rate+com-log: 0.741389
+half-year+half-year-rate+com-log: 0.782162
+half-year+half-year-rate:0.778801
+half-year+topn-half-year-rate+com-log: 0.780725
+half-year+half-year-rate+com-log+com: 0.746467
+half-year+half-year-rate+com-log+max-change: 0.74155
+half-year+half-year-rate+com-log+max-change-xgb-select: 0.7823275
+
+
+单独max-change feature在验证集能达到0.795
+
+
+TODO:
+check test xgb_feature_with_hy_rate_maxchange
+check validate lightGBM hy_ratenew
+train test fm hy_rate_maxchange

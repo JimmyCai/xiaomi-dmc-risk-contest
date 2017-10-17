@@ -2,17 +2,17 @@ package com.xiaomi.ad.feature_engineering
 
 import com.twitter.scalding.Args
 import com.xiaomi.ad.others.UALProcessed
-import com.xiaomi.ad.statistics.{MinMax, MinMaxStatistics}
-import com.xiaomi.ad.tools.MergedMethod
+import com.xiaomi.ad.statistics.MinMaxStatistics
+import com.xiaomi.ad.tools.{FeatureEncodingTools, MergedMethod}
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.{SaveMode, SparkSession}
 
 import scala.io.Source
 
 /**
-  * Created by cailiming on 17-9-28.
+  * Created by cailiming on 17-10-17.
   */
-object XGBFeature {
+object XGBFeature extends TreeFeature{
     def main(args: Array[String]): Unit = {
         val argv = Args(args)
         execute(argv, new SparkConf())
@@ -22,183 +22,47 @@ object XGBFeature {
         val spark = SparkSession.builder().config(sparkConf).getOrCreate()
         import spark.implicits._
 
-        val queryDetailRateBroadCast = spark.sparkContext.broadcast(
-            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/query-detail-rate-fields.txt"))
-                .getLines()
-                .map { line =>
-                    val split = line.split("\t")
-                    split.head.toInt -> split.last.toInt
-                }
-                .toMap
-        )
+        //rate feature start
+        val queryDetailRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/query-detail-rate-fields.txt")
 
-        val queryDetailFieldBroadCast = spark.sparkContext.broadcast(
-            (131 to 10130).toSet
-        )
+        val queryDetailFieldBroadCast = FeatureEncodingTools.getBroadCastFields(spark, "/ratefeature/query-detail-rate-fields.txt")
 
-        val queryStatRateBroadCast = spark.sparkContext.broadcast(
-            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/query-stat-rate-fields.txt"))
-                .getLines()
-                .map { line =>
-                    val split = line.split("\t")
-                    split.head.toInt -> split.last.toInt
-                }
-                .toMap
-        )
+        val queryStatRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/query-stat-rate-fields.txt")
 
-        val queryStatFieldBroadCast = spark.sparkContext.broadcast(
-            (10131 to 10233).toSet
-        )
+        val queryStatFieldBroadCast = FeatureEncodingTools.getBroadCastFields(spark, "/ratefeature/query-stat-rate-fields.txt")
 
-        val appUsageDurationRateBroadCast = spark.sparkContext.broadcast(
-            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/app-usage-duration-rate-fields.txt"))
-                .getLines()
-                .map { line =>
-                    val split = line.split("\t")
-                    split.head.toInt -> split.last.toInt
-                }
-                .toMap
-        )
+        val appUsageDurationRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/app-usage-duration-rate-fields.txt")
 
-        val appUsageDurationFieldsBroadCast = spark.sparkContext.broadcast(
-            (10234 to 40180).toSet
-        )
+        val appUsageDurationFieldsBroadCast = FeatureEncodingTools.getBroadCastFields(spark, "/ratefeature/app-usage-duration-rate-fields.txt")
 
-        val appUsageDayRateBroadCast = spark.sparkContext.broadcast(
-            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/app-usage-day-rate-fields.txt"))
-                .getLines()
-                .map { line =>
-                    val split = line.split("\t")
-                    split.head.toInt -> split.last.toInt
-                }
-                .toMap
-        )
+        val appUsageDayRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/app-usage-day-rate-fields.txt")
 
-        val appUsageDayFieldsBroadCast = spark.sparkContext.broadcast(
-            (40181 to 68114).toSet
-        )
+        val appUsageDayFieldsBroadCast = FeatureEncodingTools.getBroadCastFields(spark, "/ratefeature/app-usage-day-rate-fields.txt")
 
-        val appUsageTimeRateBroadCast = spark.sparkContext.broadcast(
-            Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ratefeature/app-usage-time-rate-fields.txt"))
-                .getLines()
-                .map { line =>
-                    val split = line.split("\t")
-                    split.head.toInt -> split.last.toInt
-                }
-                .toMap
-        )
+        val appUsageTimeRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/app-usage-time-rate-fields.txt")
 
-        val appUsageTimeFieldsBroadCast = spark.sparkContext.broadcast(
-            (68115 to 96048).toSet
-        )
+        val appUsageTimeFieldsBroadCast = FeatureEncodingTools.getBroadCastFields(spark, "/ratefeature/app-usage-time-rate-fields.txt")
 
-        val appStatInstallRateBroadCast = spark.sparkContext.broadcast(
-            Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/ratefeature/app-install-rate-fields.txt"))
-                .getLines()
-                .map { line =>
-                    val split = line.split("\t")
-                    split.head.toInt -> split.last.toInt
-                }
-                .toMap
-        )
+        val appStatInstallRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/app-install-rate-fields.txt")
 
-        val appStatInstallFieldsBroadCast = spark.sparkContext.broadcast(
-            Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/ratefeature/app-install-rate-fields.txt"))
-                .getLines()
-                .map { line =>
-                    val split = line.split("\t")
-                    split.head.toInt
-                }
-                .toSet
-        )
+        val appStatInstallFieldsBroadCast = FeatureEncodingTools.getBroadCastFields(spark, "/ratefeature/app-install-rate-fields.txt")
 
-        val appStatOpenTimeRateBroadCast = spark.sparkContext.broadcast(
-            Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/ratefeature/app-open-time-rate-fields.txt"))
-                .getLines()
-                .map { line =>
-                    val split = line.split("\t")
-                    split.head.toInt -> split.last.toInt
-                }
-                .toMap
-        )
+        val appStatOpenTimeRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/app-open-time-rate-fields.txt")
 
-        val appStatOpenTimeFieldsBroadCast = spark.sparkContext.broadcast(
-            Source.fromInputStream(LRFeature.getClass.getResourceAsStream("/ratefeature/app-open-time-rate-fields.txt"))
-                .getLines()
-                .map { line =>
-                    val split = line.split("\t")
-                    split.head.toInt
-                }
-                .toSet
-        )
+        val appStatOpenTimeFieldsBroadCast = FeatureEncodingTools.getBroadCastFields(spark, "/ratefeature/app-open-time-rate-fields.txt")
+        //rate feature end
 
-        val tsAvgFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ts-avg-fields.txt"))
-            .getLines()
-            .map { line =>
-                val split = line.split("\t")
-                split.head.toInt -> split.last.toInt
-            }
-            .toMap
-        val tsAvgBroadCast = spark.sparkContext.broadcast(tsAvgFields)
+        val needFieldsBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/xgb-fields.txt")
 
-        val tsMaxFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/ts-max-fields.txt"))
-            .getLines()
-            .map { line =>
-                val split = line.split("\t")
-                split.head.toInt -> split.last.toInt
-            }
-            .toMap
-        val tsMaxBroadCast = spark.sparkContext.broadcast(tsMaxFields)
+        val hyAvgFieldsBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/half-year-avg-fields.txt")
+        val hyMaxFieldsBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/half-year-max-fields.txt")
 
-        val osAvgFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/one-season-avg-fields.txt"))
-            .getLines()
-            .map { line =>
-                val split = line.split("\t")
-                split.head.toInt -> split.last.toInt
-            }
-            .toMap
-        val osAvgBroadCast = spark.sparkContext.broadcast(osAvgFields)
-
-        val osMaxFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/one-season-max-fields.txt"))
-            .getLines()
-            .map { line =>
-                val split = line.split("\t")
-                split.head.toInt -> split.last.toInt
-            }
-            .toMap
-        val osMaxBroadCast = spark.sparkContext.broadcast(osMaxFields)
-
-        val needFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/xgb-fields.txt"))
-            .getLines()
-            .map { line =>
-                val split = line.split("\t")
-                split.head.toInt -> split.last.toInt
-            }
-            .toMap
-        val needFieldsBroadCast = spark.sparkContext.broadcast(needFields)
-
-        val halfYearAvgFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/half-year-avg-fields.txt"))
-            .getLines()
-            .map { line =>
-                val split = line.split("\t")
-                split.head.toInt -> split.last.toInt
-            }
-            .toMap
-        val halfYearAvgBroadCast = spark.sparkContext.broadcast(halfYearAvgFields)
-
-        val halfYearMaxFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/half-year-max-fields.txt"))
-            .getLines()
-            .map { line =>
-                val split = line.split("\t")
-                split.head.toInt -> split.last.toInt
-            }
-            .toMap
-        val halfYearMaxBroadCast = spark.sparkContext.broadcast(halfYearMaxFields)
+        val maxChangeFieldsBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/max-change-fields.txt")
 
         val minMaxStatistics = MinMaxStatistics.getMinMaxStatistics(spark, args("minMax"))
         val minMaxStatisticsBroadCast = spark.sparkContext.broadcast(minMaxStatistics)
 
-        val outUser = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/out_user.txt"))
+        val outUser = Source.fromInputStream(LightGBMFeature.getClass.getResourceAsStream("/out_user.txt"))
             .getLines()
             .map { line =>
                 line.split("\t").head
@@ -219,14 +83,8 @@ object XGBFeature {
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.avg)
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.max)
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, tsAvgBroadCast.value, minMaxStatisticsBroadCast.value, 3)(MergedMethod.avg)
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, tsMaxBroadCast.value, minMaxStatisticsBroadCast.value, 3)(MergedMethod.max)
-
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, halfYearAvgBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, halfYearMaxBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.max)
-
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, osAvgBroadCast.value, minMaxStatisticsBroadCast.value, 9)(MergedMethod.avg)
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, osMaxBroadCast.value, minMaxStatisticsBroadCast.value, 9)(MergedMethod.max)
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, hyAvgFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, hyMaxFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.max)
 
                 startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, queryDetailFieldBroadCast.value, queryDetailRateBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.avg)
                 startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, queryStatFieldBroadCast.value, queryStatRateBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.avg)
@@ -236,37 +94,11 @@ object XGBFeature {
                 startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appStatInstallFieldsBroadCast.value, appStatInstallRateBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.avg)
                 startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appStatOpenTimeFieldsBroadCast.value, appStatOpenTimeRateBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.avg)
 
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, queryDetailFieldBroadCast.value, queryDetailRateBroadCast.value, minMaxStatisticsBroadCast.value, 3)(MergedMethod.avg)
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, queryStatFieldBroadCast.value, queryStatRateBroadCast.value, minMaxStatisticsBroadCast.value, 3)(MergedMethod.avg)
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageDurationFieldsBroadCast.value, appUsageDurationRateBroadCast.value, minMaxStatisticsBroadCast.value, 3)(MergedMethod.avg)
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageDayFieldsBroadCast.value, appUsageDayRateBroadCast.value, minMaxStatisticsBroadCast.value, 3)(MergedMethod.avg)
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageTimeFieldsBroadCast.value, appUsageTimeRateBroadCast.value, minMaxStatisticsBroadCast.value, 3)(MergedMethod.avg)
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appStatInstallFieldsBroadCast.value, appStatInstallRateBroadCast.value, minMaxStatisticsBroadCast.value, 3)(MergedMethod.avg)
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appStatOpenTimeFieldsBroadCast.value, appStatOpenTimeRateBroadCast.value, minMaxStatisticsBroadCast.value, 3)(MergedMethod.avg)
-
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, queryDetailFieldBroadCast.value, queryDetailRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, queryStatFieldBroadCast.value, queryStatRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageDurationFieldsBroadCast.value, appUsageDurationRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageDayFieldsBroadCast.value, appUsageDayRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageTimeFieldsBroadCast.value, appUsageTimeRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appStatInstallFieldsBroadCast.value, appStatInstallRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appStatOpenTimeFieldsBroadCast.value, appStatOpenTimeRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
-
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, queryDetailFieldBroadCast.value, queryDetailRateBroadCast.value, minMaxStatisticsBroadCast.value, 9)(MergedMethod.avg)
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, queryStatFieldBroadCast.value, queryStatRateBroadCast.value, minMaxStatisticsBroadCast.value, 9)(MergedMethod.avg)
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageDurationFieldsBroadCast.value, appUsageDurationRateBroadCast.value, minMaxStatisticsBroadCast.value, 9)(MergedMethod.avg)
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageDayFieldsBroadCast.value, appUsageDayRateBroadCast.value, minMaxStatisticsBroadCast.value, 9)(MergedMethod.avg)
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appUsageTimeFieldsBroadCast.value, appUsageTimeRateBroadCast.value, minMaxStatisticsBroadCast.value, 9)(MergedMethod.avg)
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appStatInstallFieldsBroadCast.value, appStatInstallRateBroadCast.value, minMaxStatisticsBroadCast.value, 9)(MergedMethod.avg)
-                startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, appStatOpenTimeFieldsBroadCast.value, appStatOpenTimeRateBroadCast.value, minMaxStatisticsBroadCast.value, 9)(MergedMethod.avg)
+                startIndex = encodeMaxChangeFeature(featureBuilder, ual, startIndex, maxChangeFieldsBroadCast.value, 6)
 
                 startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 0)
 
-                startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 3)
-
                 startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 6)
-
-                startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 9)
 
                 FeatureEncoded(ual.user, startIndex - 1, ual.label + featureBuilder.getFeature())
             }
@@ -283,196 +115,5 @@ object XGBFeature {
             .text(args("output"))
 
         spark.stop()
-    }
-
-    def encodeFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, xgbFields: Map[Int, Int], minMaxMap: Map[Int, MinMax], valueMedianMap: Map[Int, Double])(implicit mergedMethod: Seq[Double] => Double) = {
-        val actionSeqRow = ual.actions
-            .values
-            .filter(_.nonEmpty)
-            .flatMap { curAction =>
-                curAction
-                    .filter { case(index, _) =>
-                        xgbFields.contains(index)
-                    }
-            }
-            .groupBy(_._1)
-            .map { case (k, vs) =>
-                val vss = vs.toSeq.map(_._2)
-                val mergedValue = mergedMethod(vss)
-                val minMax = minMaxMap(k)
-                val finalV = if(mergedValue < minMax.min) minMax.min else if(mergedValue > minMax.max) minMax.max else mergedValue
-                k -> finalV
-            }
-
-        val actionSeqFillUp = valueMedianMap
-                .filter { case(id, value) =>
-                    !actionSeqRow.contains(id)
-                }
-
-        val actionSeq = (actionSeqRow ++ actionSeqFillUp)
-            .toSeq
-            .sortBy(_._1)
-
-        actionSeq
-            .foreach { case(index, value) =>
-                featureBuilder.addFeature(startIndex, 0, xgbFields(index), value)
-            }
-
-        startIndex + xgbFields.size
-    }
-
-    def encodeRateFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, needFields: Set[Int], rateMap: Map[Int, Int], minMaxMap: Map[Int, MinMax], month: Int)(implicit mergedMethod: Seq[Double] => Double) = {
-        val actionMap = ual.actions
-            .toSeq
-            .sortBy { case(time, _) =>
-                time.replace("-", "").toInt
-            }
-            .drop(month)
-            .map(_._2)
-            .filter(_.nonEmpty)
-            .flatMap { curAction =>
-                curAction
-                    .filter { case(index, _) =>
-                        needFields.contains(index) && minMaxMap.contains(index)
-                    }
-            }
-            .groupBy(_._1)
-            .map { case (k, vs) =>
-                val vss = vs.map(_._2)
-                val mergedValue = mergedMethod(vss)
-                val minMax = minMaxMap(k)
-                val finalV = if(mergedValue < minMax.min) minMax.min else if(mergedValue > minMax.max) minMax.max else mergedValue
-                k -> finalV
-            }
-
-        val sum = actionMap.values.sum
-
-        actionMap
-            .filter { case(id, value) =>
-                rateMap.contains(id)
-            }
-            .map { case(id, value) =>
-                id -> value / sum
-            }
-            .toSeq
-            .sortBy(_._1)
-            .foreach { case(id, value) =>
-                featureBuilder.addFeature(startIndex, 0, rateMap(id), value)
-            }
-
-        startIndex + rateMap.size
-    }
-
-    def encodeFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, xgbFields: Map[Int, Int], minMaxMap: Map[Int, MinMax], month: Int)(implicit mergedMethod: Seq[Double] => Double) = {
-        val actionSeq = ual.actions
-            .toSeq
-            .sortBy { case(time, _) =>
-                time.replace("-", "").toInt
-            }
-            .drop(month)
-            .map(_._2)
-            .filter(_.nonEmpty)
-            .flatMap { curAction =>
-                curAction
-                    .filter { case(index, _) =>
-                        xgbFields.contains(index)
-                    }
-            }
-            .groupBy(_._1)
-            .map { case (k, vs) =>
-                val vss = vs.map(_._2)
-                val mergedValue = mergedMethod(vss)
-                val minMax = minMaxMap(k)
-                val finalV = if(mergedValue < minMax.min) minMax.min else if(mergedValue > minMax.max) minMax.max else mergedValue
-                k -> finalV
-            }
-            .toSeq
-            .sortBy(_._1)
-
-        actionSeq
-            .foreach { case(index, value) =>
-                featureBuilder.addFeature(startIndex, 0, xgbFields(index), value)
-            }
-
-        startIndex + xgbFields.size
-    }
-
-    def encodeCombineFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, xgbFields: Set[Int], combineFields: Map[String, Int])(implicit mergedMethod: Seq[Double] => Double) = {
-        val actionSeq = ual.actions
-            .values
-            .filter(_.nonEmpty)
-            .flatMap { curAction =>
-                curAction
-                    .filter { case(index, _) =>
-                        xgbFields.contains(index)
-                    }
-            }
-            .groupBy(_._1)
-            .map { case (k, vs) =>
-                val vss = vs.toSeq.map(_._2)
-                k -> mergedMethod(vss)
-            }
-
-        actionSeq
-            .keys
-            .toSeq
-            .sorted
-            .combinations(2)
-            .filter { a =>
-                val key1 = a.head + "," + a.last
-                val key2 = a.last + "," + a.head
-                combineFields.contains(key1) || combineFields.contains(key2)
-            }
-            .foreach { a =>
-                val key1 = a.head + "," + a.last
-                val key2 = a.last + "," + a.head
-
-                if(combineFields.contains(key1)) {
-                    val value = if(actionSeq(a.last) != 0.0) actionSeq(a.head) / actionSeq(a.last) else 0.0
-                    featureBuilder.addFeature(startIndex, 0, combineFields(key1), value)
-                }
-
-                if(combineFields.contains(key2)) {
-                    val value = if(actionSeq(a.head) != 0.0) actionSeq(a.last) / actionSeq(a.head) else 0.0
-                    featureBuilder.addFeature(startIndex, 0, combineFields(key2), value)
-                }
-            }
-
-        startIndex + combineFields.size
-    }
-
-    def encodeCombineLogFeatures(featureBuilder: FeatureBuilder, ual: UALProcessed, startIndex: Int, xgbLogFields: Set[Int], combineLogFields: Map[String, Int])(implicit mergedMethod: Seq[Double] => Double) = {
-        val actionSeq = ual.actions
-            .values
-            .filter(_.nonEmpty)
-            .flatMap { curAction =>
-                curAction
-                    .filter { case(index, _) =>
-                        xgbLogFields.contains(index)
-                    }
-            }
-            .groupBy(_._1)
-            .map { case (k, vs) =>
-                val vss = vs.toSeq.map(_._2)
-                k -> mergedMethod(vss)
-            }
-
-        actionSeq
-            .keys
-            .toSeq
-            .sorted
-            .combinations(2)
-            .filter { a =>
-                val key = a.head + "," + a.last
-                combineLogFields.contains(key)
-            }
-            .foreach { a =>
-                val key = a.head + "," + a.last
-                val value = actionSeq(a.head) * actionSeq(a.last)
-
-                featureBuilder.addFeature(startIndex, 0, combineLogFields(key), if(value == 0.0) 0.0 else Math.log(value))
-            }
-
-        startIndex + combineLogFields.size
     }
 }

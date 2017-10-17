@@ -51,7 +51,7 @@ object MissingValue {
             .toSet
 
         val ans = TOTAL_FEATURE - existIds.size
-        featureBuilder.addOneHotFeature(startIndex, 1, 0, Discretization.minMax(10, 10000, ans))
+        featureBuilder.addOneHotFeature(startIndex, 1, 0, Discretization.minMax(10, 5000, ans))
     }
 
     def encodeOneMonth(featureBuilder: FeatureBuilder, ualAction: scala.collection.Map[Int, Double], startIndex: Int) = {

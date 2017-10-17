@@ -21,7 +21,7 @@ object LSTMFeature {
         val spark = SparkSession.builder().config(sparkConf).getOrCreate()
         import spark.implicits._
 
-        val needFields = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/lr-fields.txt"))
+        val needFields = Source.fromInputStream(LightGBMFeature.getClass.getResourceAsStream("/lr-fields.txt"))
             .getLines()
             .map { line =>
                 val split = line.split("\t")
@@ -33,7 +33,7 @@ object LSTMFeature {
         val minMaxStatistics = MinMaxStatistics.getMinMaxStatistics(spark, args("minMax"))
         val minMaxStatisticsBroadCast = spark.sparkContext.broadcast(minMaxStatistics)
 
-        val outUser = Source.fromInputStream(XGBFeature.getClass.getResourceAsStream("/out_user.txt"))
+        val outUser = Source.fromInputStream(LightGBMFeature.getClass.getResourceAsStream("/out_user.txt"))
             .getLines()
             .map { line =>
                 line.split("\t").head

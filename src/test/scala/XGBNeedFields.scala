@@ -445,7 +445,7 @@ object XGBNeedFields {
         bw.close()
     }
 
-    def main(args: Array[String]): Unit = {
+    def main13(args: Array[String]): Unit = {
         val bw1 = new BufferedWriter(new FileWriter(new File("/home/mi/Desktop/ts-avg-fields.txt")))
         val bw2 = new BufferedWriter(new FileWriter(new File("/home/mi/Desktop/ts-max-fields.txt")))
 
@@ -487,5 +487,33 @@ object XGBNeedFields {
         bw2.flush()
         bw1.close()
         bw2.close()
+    }
+
+    def main(args: Array[String]): Unit = {
+        val bw = new BufferedWriter(new FileWriter(new File("/home/mi/Desktop/max-change-fields.txt")))
+
+        val t = Source.fromInputStream(getClass.getResourceAsStream("/new-lr-fields.txt"))
+            .getLines()
+            .map { line =>
+                val split = line.split("\t")
+                (split.last.toInt + 1) -> split.head.toInt
+            }
+            .toMap
+
+        Source.fromInputStream(getClass.getResourceAsStream("/max-change-feature-score.txt"))
+            .getLines()
+            .map { line =>
+                val split = line.split(",")
+                t(split.head.toInt)
+            }
+            .toSeq
+            .sorted
+            .zipWithIndex
+            .foreach{ case(id, index) =>
+                bw.write(f"$id\t$index\n")
+            }
+
+        bw.flush()
+        bw.close()
     }
 }
