@@ -84,7 +84,9 @@ object BasicProfileFeatureProxy {
     }
 
     def provinceCityProxyAllIn(places: Seq[Int]) = {
-        val allPlaces = places.distinct.sorted
+        val allPlaces = places.distinct.sorted.map { a =>
+            if(a == 34) 0 else a
+        }
         if(allPlaces.isEmpty) Seq(0) else allPlaces
     }
 

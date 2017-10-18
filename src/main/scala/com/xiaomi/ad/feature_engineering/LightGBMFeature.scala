@@ -15,7 +15,19 @@ import scala.io.Source
 object LightGBMFeature extends TreeFeature {
     def main(args: Array[String]): Unit = {
         val argv = Args(args)
-        executeHalfYear(argv, new SparkConf())
+
+        val sparkConf = new SparkConf()
+
+        argv("time") match {
+            case "fullYear" =>
+                executeFullYear(argv, sparkConf)
+            case "threeSeason" =>
+                executeThreeSeason(argv, sparkConf)
+            case "halfYear" =>
+                executeHalfYear(argv, sparkConf)
+            case "oneSeason" =>
+                executeOneSeason(argv, sparkConf)
+        }
     }
 
     def executeFullYear(args: Args, sparkConf: SparkConf) = {
@@ -230,8 +242,6 @@ object LightGBMFeature extends TreeFeature {
         val hyAvgFieldsBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/half-year-avg-fields.txt")
         val hyMaxFieldsBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/half-year-max-fields.txt")
 
-        val maxChangeFieldsBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/max-change-fields.txt")
-
         val minMaxStatistics = MinMaxStatistics.getMinMaxStatistics(spark, args("minMax"))
         val minMaxStatisticsBroadCast = spark.sparkContext.broadcast(minMaxStatistics)
 
@@ -255,8 +265,6 @@ object LightGBMFeature extends TreeFeature {
 
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, hyAvgFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, hyMaxFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.max)
-
-//                startIndex = encodeMaxChangeFeature(featureBuilder, ual, startIndex, maxChangeFieldsBroadCast.value, 6)
 
                 startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, queryDetailFieldBroadCast.value, queryDetailRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
                 startIndex = encodeRateFeatures(featureBuilder, ual, startIndex, queryStatFieldBroadCast.value, queryStatRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)

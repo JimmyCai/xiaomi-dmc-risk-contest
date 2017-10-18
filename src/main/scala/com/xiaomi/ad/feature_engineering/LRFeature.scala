@@ -24,8 +24,6 @@ object LRFeature extends OneHotFeature {
 
         val needFieldsBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/new-lr-fields.txt")
 
-        val maxFieldsBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/half-year-max-fields.txt")
-
         val combineLogFields = Source.fromInputStream(LightGBMFeature.getClass.getResourceAsStream("/combine-log-need-fields.txt"))
             .getLines()
             .map { line =>
@@ -45,35 +43,45 @@ object LRFeature extends OneHotFeature {
             .toSet
         val combineLogNeedFieldsBroadCast = spark.sparkContext.broadcast(combineLogNeedFields)
 
-        val queryDetailRateBroadCast = spark.sparkContext.broadcast(
-            (131 to 10130)
-                .zipWithIndex
-                .toMap
-        )
+        val queryDetailRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/query-detail-rate-fields.txt")
 
-        val queryStatRateBroadCast = spark.sparkContext.broadcast(
-            (10131 to 10233)
-                .zipWithIndex
-                .toMap
-        )
+        val queryStatRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/query-stat-rate-fields.txt")
 
-        val appUsageDurationRateBroadCast = spark.sparkContext.broadcast(
-            (10234 to 40180)
-                .zipWithIndex
-                .toMap
-        )
+        val appUsageDurationRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/app-usage-duration-rate-fields.txt")
 
-        val appUsageDayRateBroadCast = spark.sparkContext.broadcast(
-            (40181 to 68114)
-                .zipWithIndex
-                .toMap
-        )
+        val appUsageDayRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/app-usage-day-rate-fields.txt")
 
-        val appUsageTimeRateBroadCast = spark.sparkContext.broadcast(
-            (68115 to 96048)
-                .zipWithIndex
-                .toMap
-        )
+        val appUsageTimeRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/app-usage-time-rate-fields.txt")
+
+//        val queryDetailRateBroadCast = spark.sparkContext.broadcast(
+//            (131 to 10130)
+//                .zipWithIndex
+//                .toMap
+//        )
+//
+//        val queryStatRateBroadCast = spark.sparkContext.broadcast(
+//            (10131 to 10233)
+//                .zipWithIndex
+//                .toMap
+//        )
+//
+//        val appUsageDurationRateBroadCast = spark.sparkContext.broadcast(
+//            (10234 to 40180)
+//                .zipWithIndex
+//                .toMap
+//        )
+//
+//        val appUsageDayRateBroadCast = spark.sparkContext.broadcast(
+//            (40181 to 68114)
+//                .zipWithIndex
+//                .toMap
+//        )
+//
+//        val appUsageTimeRateBroadCast = spark.sparkContext.broadcast(
+//            (68115 to 96048)
+//                .zipWithIndex
+//                .toMap
+//        )
 
         val appStatInstallRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/app-install-rate-fields.txt")
 
@@ -97,7 +105,6 @@ object LRFeature extends OneHotFeature {
                 startIndex = BasicProfile.encode(featureBuilder, ual, startIndex)
 
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, maxFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.max)
 
                 startIndex = encodeRateFeature(featureBuilder, ual, startIndex, queryDetailRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
                 startIndex = encodeRateFeature(featureBuilder, ual, startIndex, queryStatRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)

@@ -129,12 +129,17 @@ half-year+topn-half-year-rate+com-log: 0.780725
 half-year+half-year-rate+com-log+com: 0.746467
 half-year+half-year-rate+com-log+max-change: 0.74155
 half-year+half-year-rate+com-log+max-change-xgb-select: 0.7823275
+half-year+half-year-rate-xgb-select+com-log+max-change-xgb-select: 0.784128
 
 
-单独max-change feature在验证集能达到0.795
+单独max-change feature在xgb验证集能达到0.795
 
 
 TODO:
 check validate lightGBM hy_ratenew：0.828828
 
-xgb用87397，fm用half-year+half-year-rate+com-log+max-change-xgb-select，lightGBN用gbdt简单融合87738，（0.3+0.5+0.2）融合得到0.88133
+xgb用87397，fm用half-year+half-year-rate+com-log+max-change-xgb-select，lightGBM用gbdt简单融合87738，（0.3+0.5+0.2）融合得到0.88133
+
+xgb用87397，fm用half-year+half-year-rate-xgb-select+com-log+max-change-xgb-select，lightGBN用gbdt简单融合87738，（0.3+0.5+0.2）融合得到0.88237
+
+xgb用87397，fm用half-year+half-year-rate-xgb-select+com-log+max-change-xgb-select，lightGBN用gbdt简单融合87738，（0.3+0.4+0.3）融合得到0.88379
