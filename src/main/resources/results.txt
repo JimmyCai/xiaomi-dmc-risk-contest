@@ -130,7 +130,8 @@ half-year+half-year-rate+com-log+com: 0.746467
 half-year+half-year-rate+com-log+max-change: 0.74155
 half-year+half-year-rate+com-log+max-change-xgb-select: 0.7823275
 half-year+half-year-rate-xgb-select+com-log+max-change-xgb-select: 0.784128
-
+full-year-xgb-select+half-year+half-year-rate-xgb-select+com-log+max-change-xgb-select: 0.747406
+（所有用7个月）half-year+half-year-rate-xgb-select+com-log+max-change-xgb-select: 0.74659
 
 单独max-change feature在xgb验证集能达到0.795
 

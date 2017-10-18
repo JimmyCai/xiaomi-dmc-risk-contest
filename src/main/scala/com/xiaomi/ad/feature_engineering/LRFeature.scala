@@ -74,21 +74,22 @@ object LRFeature extends OneHotFeature {
 
                 startIndex = BasicProfile.encode(featureBuilder, ual, startIndex)
 
-                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 7)(MergedMethod.avg)
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.max)
+//                startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
 
-                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, queryDetailRateBroadCast.value, minMaxStatisticsBroadCast.value, 7)(MergedMethod.avg)
-                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, queryStatRateBroadCast.value, minMaxStatisticsBroadCast.value, 7)(MergedMethod.avg)
-                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, appUsageDurationRateBroadCast.value, minMaxStatisticsBroadCast.value, 7)(MergedMethod.avg)
-                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, appUsageDayRateBroadCast.value, minMaxStatisticsBroadCast.value, 7)(MergedMethod.avg)
-                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, appUsageTimeRateBroadCast.value, minMaxStatisticsBroadCast.value, 7)(MergedMethod.avg)
-                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, appStatInstallRateBroadCast.value, minMaxStatisticsBroadCast.value, 7)(MergedMethod.avg)
-                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, appStatOpenTimeRateBroadCast.value, minMaxStatisticsBroadCast.value, 7)(MergedMethod.avg)
+                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, queryDetailRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
+                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, queryStatRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
+                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, appUsageDurationRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
+                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, appUsageDayRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
+                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, appUsageTimeRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
+                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, appStatInstallRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
+                startIndex = encodeRateFeature(featureBuilder, ual, startIndex, appStatOpenTimeRateBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
 
-                startIndex = encodeCombineLogFeatures(featureBuilder, ual, startIndex, combineLogNeedFieldsBroadCast.value, combineLogFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 7)(MergedMethod.avg)
+                startIndex = encodeCombineLogFeatures(featureBuilder, ual, startIndex, combineLogNeedFieldsBroadCast.value, combineLogFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
 
-                startIndex = encodeMaxChangeFeature(featureBuilder, ual, startIndex, maxChangeFieldsBroadCast.value, maxChangeMinMaxStatisticsBroadCast.value, 7)
+                startIndex = encodeMaxChangeFeature(featureBuilder, ual, startIndex, maxChangeFieldsBroadCast.value, maxChangeMinMaxStatisticsBroadCast.value, 6)
 
-                startIndex = MissingValue.encodeLR(featureBuilder, ual, startIndex, 7)
+                startIndex = MissingValue.encodeLR(featureBuilder, ual, startIndex, 6)
 
                 FeatureEncoded(ual.user, startIndex - 1, ual.label + featureBuilder.getFeature())
             }
