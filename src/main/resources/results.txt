@@ -132,6 +132,7 @@ half-year+half-year-rate+com-log+max-change-xgb-select: 0.7823275
 half-year+half-year-rate-xgb-select+com-log+max-change-xgb-select: 0.784128
 full-year-xgb-select+half-year+half-year-rate-xgb-select+com-log+max-change-xgb-select: 0.747406
 （所有用7个月）half-year+half-year-rate-xgb-select+com-log+max-change-xgb-select: 0.74659
+half-year(用max替换avg，简称bhy)+half-year-rate-xgb-select+com-log+max-change-xgb-select: 0.785467
 
 单独max-change feature在xgb验证集能达到0.795
 
@@ -144,3 +145,5 @@ xgb用87397，fm用half-year+half-year-rate+com-log+max-change-xgb-select，ligh
 xgb用87397，fm用half-year+half-year-rate-xgb-select+com-log+max-change-xgb-select，lightGBN用gbdt简单融合87738，（0.3+0.5+0.2）融合得到0.88237
 
 xgb用87397，fm用half-year+half-year-rate-xgb-select+com-log+max-change-xgb-select，lightGBN用gbdt简单融合87738，（0.3+0.4+0.3）融合得到0.88379
+
+xgb用87397，fm用half-year+half-year-rate-xgb-select+com-log+max-change-xgb-select，lightGBN用gbdt简单融合87738，（0.2+0.4+0.4）融合得到0.884265
