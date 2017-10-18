@@ -24,7 +24,7 @@ object LRFeature extends OneHotFeature {
 
         val needFieldsBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/new-lr-fields.txt")
 
-        val xgbFieldsBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/xgb-fields.txt")
+        val xgbFieldsBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/one-season-avg-fields.txt")
 
         val combineLogFields = Source.fromInputStream(LightGBMFeature.getClass.getResourceAsStream("/combine-log-need-fields.txt"))
             .getLines()
