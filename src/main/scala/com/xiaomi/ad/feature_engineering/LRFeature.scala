@@ -86,8 +86,6 @@ object LRFeature extends OneHotFeature {
 
                 startIndex = encodeCombineLogFeatures(featureBuilder, ual, startIndex, combineLogNeedFieldsBroadCast.value, combineLogFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
 
-                startIndex = encodeCombineLogFeatures(featureBuilder, ual, startIndex, combineLogNeedFieldsBroadCast.value, combineLogFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.max)
-
                 startIndex = encodeMaxChangeFeature(featureBuilder, ual, startIndex, maxChangeFieldsBroadCast.value, maxChangeMinMaxStatisticsBroadCast.value, 6)
 
                 startIndex = MissingValue.encodeLR(featureBuilder, ual, startIndex, 6)
