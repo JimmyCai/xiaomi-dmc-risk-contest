@@ -24,6 +24,8 @@ object LRFeature extends OneHotFeature {
 
         val needFieldsBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/new-lr-fields.txt")
 
+        val xgbFieldsBroadCast  = FeatureEncodingTools.getBroadCastFieldMap(spark, "/xgb-fields.txt")
+
         val combineLogFields = Source.fromInputStream(LightGBMFeature.getClass.getResourceAsStream("/combine-log-need-fields.txt"))
             .getLines()
             .map { line =>
@@ -53,36 +55,6 @@ object LRFeature extends OneHotFeature {
 
         val appUsageTimeRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/app-usage-time-rate-fields.txt")
 
-//        val queryDetailRateBroadCast = spark.sparkContext.broadcast(
-//            (131 to 10130)
-//                .zipWithIndex
-//                .toMap
-//        )
-//
-//        val queryStatRateBroadCast = spark.sparkContext.broadcast(
-//            (10131 to 10233)
-//                .zipWithIndex
-//                .toMap
-//        )
-//
-//        val appUsageDurationRateBroadCast = spark.sparkContext.broadcast(
-//            (10234 to 40180)
-//                .zipWithIndex
-//                .toMap
-//        )
-//
-//        val appUsageDayRateBroadCast = spark.sparkContext.broadcast(
-//            (40181 to 68114)
-//                .zipWithIndex
-//                .toMap
-//        )
-//
-//        val appUsageTimeRateBroadCast = spark.sparkContext.broadcast(
-//            (68115 to 96048)
-//                .zipWithIndex
-//                .toMap
-//        )
-
         val appStatInstallRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/app-install-rate-fields.txt")
 
         val appStatOpenTimeRateBroadCast = FeatureEncodingTools.getBroadCastFieldMap(spark, "/ratefeature/app-open-time-rate-fields.txt")
@@ -103,6 +75,8 @@ object LRFeature extends OneHotFeature {
                 var startIndex = 1
 
                 startIndex = BasicProfile.encode(featureBuilder, ual, startIndex)
+
+                startIndex = encodeFeatures(featureBuilder, ual, startIndex, xgbFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 12)(MergedMethod.avg)
 
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
 
