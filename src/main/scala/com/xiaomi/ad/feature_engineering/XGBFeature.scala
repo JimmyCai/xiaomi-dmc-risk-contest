@@ -92,6 +92,8 @@ object XGBFeature extends TreeFeature{
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, hyAvgFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, hyMaxFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.max)
 
+                startIndex = BasicProfile.encode(featureBuilder, ual, startIndex)
+
                 startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 0)
 
                 startIndex = MissingValue.encode(featureBuilder, ual, startIndex, 6)

@@ -148,3 +148,6 @@ xgb用87397，fm用half-year+half-year-rate-xgb-select+com-log+max-change-xgb-se
 xgb用87397，fm用half-year+half-year-rate-xgb-select+com-log+max-change-xgb-select，lightGBN用gbdt简单融合87738，（0.3+0.4+0.3）融合得到0.88379
 
 xgb用87397，fm用half-year+half-year-rate-xgb-select+com-log+max-change-xgb-select，lightGBN用gbdt简单融合87738，（0.2+0.4+0.4）融合得到0.884265
+
+
+GBDT(0.25+0.25+0.25+0.25)融合得到85896

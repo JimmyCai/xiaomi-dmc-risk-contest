@@ -256,6 +256,6 @@ class OneHotFeature {
                 featureBuilder.addOneHotFeature(startIndex, 0, needFields(index), Discretization.minMax(minMaxMap(index).min, minMaxMap(index).max, value))
             }
 
-        startIndex + needFields.size
+        startIndex + needFields.size * 5
     }
 }

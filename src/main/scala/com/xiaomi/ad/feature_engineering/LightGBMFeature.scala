@@ -87,6 +87,8 @@ object LightGBMFeature extends TreeFeature {
                 val featureBuilder = new FeatureBuilder
                 var startIndex = 1
 
+                startIndex = BasicProfile.encode(featureBuilder, ual, startIndex)
+
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.avg)
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, needFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 0)(MergedMethod.max)
 
@@ -174,6 +176,8 @@ object LightGBMFeature extends TreeFeature {
             .map { ual =>
                 val featureBuilder = new FeatureBuilder
                 var startIndex = 1
+
+                startIndex = BasicProfile.encode(featureBuilder, ual, startIndex)
 
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, tsAvgFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 3)(MergedMethod.avg)
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, tsMaxFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 3)(MergedMethod.max)
@@ -263,6 +267,8 @@ object LightGBMFeature extends TreeFeature {
                 val featureBuilder = new FeatureBuilder
                 var startIndex = 1
 
+                startIndex = BasicProfile.encode(featureBuilder, ual, startIndex)
+
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, hyAvgFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.avg)
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, hyMaxFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 6)(MergedMethod.max)
 
@@ -350,6 +356,8 @@ object LightGBMFeature extends TreeFeature {
             .map { ual =>
                 val featureBuilder = new FeatureBuilder
                 var startIndex = 1
+
+                startIndex = BasicProfile.encode(featureBuilder, ual, startIndex)
 
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, osAvgFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 9)(MergedMethod.avg)
                 startIndex = encodeFeatures(featureBuilder, ual, startIndex, osMaxFieldsBroadCast.value, minMaxStatisticsBroadCast.value, 9)(MergedMethod.max)
